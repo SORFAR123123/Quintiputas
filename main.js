@@ -7,12 +7,24 @@ const UI = {
         Sistema.inicializar();
     },
 
-    // Cargar datos
+    // Cargar temas desde el nuevo vocabulario
     cargarTemas: function() {
         const listaTemas = document.getElementById('lista-temas');
         listaTemas.innerHTML = '';
 
         vocabulario.temas.forEach(tema => {
+            // Calcular estadísticas del tema
+            let totalSubtemas = tema.subtemas.length;
+            let totalMazos = 0;
+            let totalPalabras = 0;
+            
+            tema.subtemas.forEach(subtema => {
+                totalMazos += subtema.mazos.length;
+                subtema.mazos.forEach(mazo => {
+                    totalPalabras += mazo.palabras.length;
+                });
+            });
+
             const temaCard = document.createElement('div');
             temaCard.className = 'tema-card';
             temaCard.dataset.temaId = tema.id;
@@ -20,6 +32,11 @@ const UI = {
                 <i class="${tema.icono}"></i>
                 <h3>${tema.nombre}</h3>
                 <p>${tema.descripcion}</p>
+                <div class="tema-estadisticas">
+                    <span><i class="fas fa-folder"></i> ${totalSubtemas} subtemas</span>
+                    <span><i class="fas fa-layer-group"></i> ${totalMazos} mazos</span>
+                    <span><i class="fas fa-font"></i> ${totalPalabras} palabras</span>
+                </div>
             `;
             listaTemas.appendChild(temaCard);
         });
@@ -36,13 +53,25 @@ const UI = {
         listaSubtemas.innerHTML = '';
 
         tema.subtemas.forEach(subtema => {
+            // Calcular total de palabras en todos los mazos del subtema
+            let totalPalabras = 0;
+            let totalMazos = subtema.mazos.length;
+            
+            subtema.mazos.forEach(mazo => {
+                totalPalabras += mazo.palabras.length;
+            });
+
             const subtemaCard = document.createElement('div');
             subtemaCard.className = 'subtema-card';
             subtemaCard.dataset.subtemaId = subtema.id;
             subtemaCard.innerHTML = `
                 <i class="${subtema.icono}"></i>
                 <h3>${subtema.nombre}</h3>
-                <p>${subtema.mazos.length} mazos disponibles</p>
+                <div class="subtema-info">
+                    <span><i class="fas fa-layer-group"></i> ${totalMazos} mazos</span>
+                    <span><i class="fas fa-font"></i> ${totalPalabras} palabras</span>
+                </div>
+                <p>Haz clic para ver los mazos</p>
             `;
             listaSubtemas.appendChild(subtemaCard);
         });
@@ -51,6 +80,7 @@ const UI = {
     },
 
     cargarMazos: function(subtemaId) {
+        // Buscar el tema que contiene este subtema
         const tema = vocabulario.temas.find(t => 
             t.subtemas.some(s => s.id === subtemaId)
         );
@@ -60,26 +90,45 @@ const UI = {
 
         const listaMazos = document.getElementById('lista-mazos');
         const tituloSubtema = document.getElementById('titulo-subtema-actual');
-        const recompensaElemento = document.getElementById('recompensa-mazo');
         
         tituloSubtema.textContent = subtema.nombre;
-        recompensaElemento.textContent = '2';
         listaMazos.innerHTML = '';
 
-        subtema.mazos.forEach(mazo => {
+        subtema.mazos.forEach((mazo, index) => {
             const progreso = Sistema.obtenerProgresoMazo(mazo.id);
+            const totalPalabras = mazo.palabras.length;
+            const completadas = Math.floor((progreso / 100) * totalPalabras);
+            
             const mazoCard = document.createElement('div');
             mazoCard.className = 'mazo-card';
             mazoCard.dataset.mazoId = mazo.id;
             mazoCard.innerHTML = `
-                <i class="${mazo.icono}"></i>
-                <h3>${mazo.nombre}</h3>
-                <p>${mazo.descripcion}</p>
+                <div class="mazo-header">
+                    <i class="${mazo.icono}"></i>
+                    <div class="mazo-titulo">
+                        <h3>${mazo.nombre}</h3>
+                        <span class="mazo-numero">Mazo ${index + 1}</span>
+                    </div>
+                </div>
+                <p class="mazo-descripcion">${mazo.descripcion}</p>
+                <div class="mazo-estadisticas">
+                    <div class="estadistica">
+                        <i class="fas fa-font"></i>
+                        <span>${totalPalabras} palabras</span>
+                    </div>
+                    <div class="estadistica">
+                        <i class="fas fa-coins"></i>
+                        <span>+${mazo.recompensa} soles</span>
+                    </div>
+                </div>
                 <div class="progreso-mazo">
                     <div class="progreso-mini">
                         <div class="progreso-fill-mini" style="width: ${progreso}%"></div>
                     </div>
-                    <span>${progreso}% completado</span>
+                    <span>${completadas}/${totalPalabras} (${progreso}%)</span>
+                </div>
+                <div class="mazo-boton">
+                    <i class="fas fa-play"></i> Iniciar
                 </div>
             `;
             listaMazos.appendChild(mazoCard);
@@ -110,7 +159,7 @@ const UI = {
         if (progresoFill && progresoTexto) {
             progresoFill.style.width = `${porcentajeTotal}%`;
             progresoFill.textContent = `${porcentajeTotal}%`;
-            progresoTexto.textContent = `${totalCompletadas}/${totalPalabras} completado`;
+            progresoTexto.textContent = `${totalCompletadas}/${totalPalabras} palabras completadas`;
         }
     },
 
@@ -165,18 +214,22 @@ const UI = {
             }
         });
 
-        // Opciones del quiz
+        // Opciones del quiz - CORREGIDO
         document.querySelectorAll('.opcion').forEach(opcion => {
             opcion.addEventListener('click', (e) => {
-                if (opcion.classList.contains('correcta') || 
-                    opcion.classList.contains('incorrecta')) {
-                    return; // Ya se respondió esta pregunta
+                const opcionElement = e.target.closest('.opcion');
+                if (!opcionElement) return;
+                
+                // Verificar si ya se respondió
+                if (opcionElement.classList.contains('correcta') || 
+                    opcionElement.classList.contains('incorrecta')) {
+                    return;
                 }
 
-                const opcionIndex = parseInt(opcion.dataset.index);
+                const opcionIndex = parseInt(opcionElement.dataset.index);
                 const correcta = Sistema.responderPregunta(opcionIndex);
                 
-                // Si fue correcta, pasar automáticamente a la siguiente
+                // Si fue correcta, pasar automáticamente a la siguiente después de 1.5 segundos
                 if (correcta) {
                     setTimeout(() => {
                         Sistema.siguientePregunta();
