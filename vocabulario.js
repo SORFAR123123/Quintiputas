@@ -2,9 +2,9 @@ const vocabulario = {
     temas: [
         {
             id: "manga",
-            nombre: "Manga",
+            nombre: "Manga/Anime",
             icono: "fas fa-book",
-            descripcion: "Personajes y términos de manga",
+            descripcion: "Vocabulario y frases de manga/anime",
             subtemas: [
                 {
                     id: "naruto",
@@ -12,92 +12,104 @@ const vocabulario = {
                     icono: "fas fa-leaf",
                     mazos: [
                         {
-                            id: "naruto-personajes",
-                            nombre: "Personajes Principales",
-                            icono: "fas fa-user-ninja",
-                            descripcion: "10 personajes principales de Naruto",
+                            id: "naruto-frases",
+                            nombre: "Frases Comunes",
+                            icono: "fas fa-comment",
+                            descripcion: "10 frases frecuentes en Naruto",
                             recompensa: 2,
                             palabras: [
                                 {
-                                    palabra: "Naruto Uzumaki",
-                                    romaji: "Naruto Uzumaki",
-                                    opciones: ["Sasuke Uchiha", "Kakashi Hatake", "Sakura Haruno", "Hinata Hyuga"],
+                                    palabra: "いい加減",
+                                    romaji: "ii kagen",
+                                    opciones: ["Ya basta", "Perfecto", "Misión", "Comienzo"],
                                     respuesta: 0
                                 },
                                 {
-                                    palabra: "Sasuke Uchiha",
-                                    romaji: "Sasuke Uchiha",
-                                    opciones: ["Naruto Uzumaki", "Itachi Uchiha", "Kakashi Hatake", "Shikamaru Nara"],
-                                    respuesta: 1
-                                },
-                                {
-                                    palabra: "Kakashi Hatake",
-                                    romaji: "Kakashi Hatake",
-                                    opciones: ["Might Guy", "Asuma Sarutobi", "Jiraiya", "Minato Namikaze"],
-                                    respuesta: 3
-                                },
-                                {
-                                    palabra: "Sakura Haruno",
-                                    romaji: "Sakura Haruno",
-                                    opciones: ["Ino Yamanaka", "Hinata Hyuga", "Tsunade", "Temari"],
-                                    respuesta: 2
-                                },
-                                {
-                                    palabra: "Hinata Hyuga",
-                                    romaji: "Hinata Hyuga",
-                                    opciones: ["Hanabi Hyuga", "Neji Hyuga", "Sakura Haruno", "Ino Yamanaka"],
-                                    respuesta: 1
-                                },
-                                {
-                                    palabra: "Jiraiya",
-                                    romaji: "Jiraiya",
-                                    opciones: ["Orochimaru", "Tsunade", "Hiruzen Sarutobi", "Minato Namikaze"],
-                                    respuesta: 2
-                                },
-                                {
-                                    palabra: "Tsunade",
-                                    romaji: "Tsunade",
-                                    opciones: ["Sakura Haruno", "Shizune", "Kushina Uzumaki", "Mei Terumi"],
-                                    respuesta: 1
-                                },
-                                {
-                                    palabra: "Gaara",
-                                    romaji: "Gaara",
-                                    opciones: ["Kankuro", "Temari", "Rasa", "Shukaku"],
+                                    palabra: "傳説",
+                                    romaji: "densetsu",
+                                    opciones: ["Leyenda", "Noche", "Primera vez", "Mitad"],
                                     respuesta: 0
                                 },
                                 {
-                                    palabra: "Itachi Uchiha",
-                                    romaji: "Itachi Uchiha",
-                                    opciones: ["Sasuke Uchiha", "Shisui Uchiha", "Madara Uchiha", "Obito Uchiha"],
-                                    respuesta: 1
+                                    palabra: "もんかな",
+                                    romaji: "mon ka na",
+                                    opciones: ["Supongo", "Leyenda", "Tarea", "Noche"],
+                                    respuesta: 0
                                 },
                                 {
-                                    palabra: "Minato Namikaze",
-                                    romaji: "Minato Namikaze",
-                                    opciones: ["Kushina Uzumaki", "Jiraiya", "Hiruzen Sarutobi", "Tobirama Senju"],
+                                    palabra: "今夜",
+                                    romaji: "kon'ya",
+                                    opciones: ["Esta noche", "Ya basta", "Leyenda", "Perfecto"],
+                                    respuesta: 0
+                                },
+                                {
+                                    palabra: "完璧",
+                                    romaji: "kanpeki",
+                                    opciones: ["Perfecto", "Misión", "Primera vez", "Final"],
+                                    respuesta: 0
+                                },
+                                {
+                                    palabra: "任務",
+                                    romaji: "ninmu",
+                                    opciones: ["Misión", "Leyenda", "Esta noche", "Mitad"],
+                                    respuesta: 0
+                                },
+                                {
+                                    palabra: "遂行",
+                                    romaji: "suikō",
+                                    opciones: ["Ejecución", "Supongo", "Perfecto", "Leyenda"],
+                                    respuesta: 0
+                                },
+                                {
+                                    palabra: "初体験ということ",
+                                    romaji: "hatsu taiken to iu koto",
+                                    opciones: ["Es mi primera vez", "Misión cumplida", "Noche perfecta", "Media leyenda"],
+                                    respuesta: 0
+                                },
+                                {
+                                    palabra: "最終日",
+                                    romaji: "saishūbi",
+                                    opciones: ["Día final", "Primera vez", "Noche de leyenda", "Media misión"],
+                                    respuesta: 0
+                                },
+                                {
+                                    palabra: "両等分",
+                                    romaji: "ryō tōbun",
+                                    opciones: ["Dividido a la mitad", "Completamente", "Por primera vez", "Esta noche"],
                                     respuesta: 0
                                 }
                             ]
                         },
                         {
                             id: "naruto-jutsus",
-                            nombre: "Jutsus Especiales",
+                            nombre: "Técnicas Ninja",
                             icono: "fas fa-fire",
-                            descripcion: "Técnicas ninja famosas",
+                            descripcion: "Nombres de jutsus y técnicas",
                             recompensa: 2,
                             palabras: [
                                 {
-                                    palabra: "Rasengan",
-                                    romaji: "Rasengan",
-                                    opciones: ["Chidori", "Kage Bunshin", "Sharingan", "Byakugan"],
+                                    palabra: "影分身の術",
+                                    romaji: "kage bunshin no jutsu",
+                                    opciones: ["Técnica de clonación de sombras", "Técnica de bola de fuego", "Técnica de ilusión", "Técnica de curación"],
                                     respuesta: 0
                                 },
                                 {
-                                    palabra: "Chidori",
-                                    romaji: "Chidori",
-                                    opciones: ["Rasengan", "Raikiri", "Amaterasu", "Susanoo"],
-                                    respuesta: 1
+                                    palabra: "螺旋丸",
+                                    romaji: "rasengan",
+                                    opciones: ["Esfera giratoria", "Bola de fuego", "Corte relámpago", "Ojo copiador"],
+                                    respuesta: 0
+                                },
+                                {
+                                    palabra: "千鳥",
+                                    romaji: "chidori",
+                                    opciones: ["Mil pájaros", "Esfera giratoria", "Bola de fuego", "Clon de sombra"],
+                                    respuesta: 0
+                                },
+                                {
+                                    palabra: "写輪眼",
+                                    romaji: "sharingan",
+                                    opciones: ["Ojo copiador", "Ojo byakugan", "Ojo de sabio", "Ojo de águila"],
+                                    respuesta: 0
                                 }
                             ]
                         }
@@ -109,23 +121,23 @@ const vocabulario = {
                     icono: "fas fa-skull-crossbones",
                     mazos: [
                         {
-                            id: "one-piece-tripulacion",
-                            nombre: "Tripulación Sombrero de Paja",
+                            id: "one-piece-frases",
+                            nombre: "Frases de Tripulación",
                             icono: "fas fa-hat-cowboy",
-                            descripcion: "Miembros de la tripulación",
+                            descripcion: "Frases famosas de One Piece",
                             recompensa: 2,
                             palabras: [
                                 {
-                                    palabra: "Monkey D. Luffy",
-                                    romaji: "Monkī Dī Rufi",
-                                    opciones: ["Roronoa Zoro", "Nami", "Usopp", "Sanji"],
+                                    palabra: "俺は海賊王になる",
+                                    romaji: "ore wa kaizoku-ō ni naru",
+                                    opciones: ["Seré el Rey de los Piratas", "Soy el espadachín más fuerte", "Encontraré el One Piece", "Navegaré por todos los mares"],
                                     respuesta: 0
                                 },
                                 {
-                                    palabra: "Roronoa Zoro",
-                                    romaji: "Roronoa Zoro",
-                                    opciones: ["Sanji", "Brook", "Franky", "Jinbe"],
-                                    respuesta: 1
+                                    palabra: "三刀流",
+                                    romaji: "santōryū",
+                                    opciones: ["Estilo de tres espadas", "Estilo de dos espadas", "Estilo de espada única", "Estilo de garra"],
+                                    respuesta: 0
                                 }
                             ]
                         }
@@ -137,7 +149,7 @@ const vocabulario = {
             id: "openings",
             nombre: "Openings",
             icono: "fas fa-music",
-            descripcion: "Canciones de apertura de anime",
+            descripcion: "Letras de openings de anime",
             subtemas: [
                 {
                     id: "shonen-openings",
@@ -146,22 +158,22 @@ const vocabulario = {
                     mazos: [
                         {
                             id: "openings-naruto",
-                            nombre: "Openings de Naruto",
+                            nombre: "Naruto Openings",
                             icono: "fas fa-play-circle",
-                            descripcion: "Canciones de apertura de Naruto",
+                            descripcion: "Letras de openings de Naruto",
                             recompensa: 2,
                             palabras: [
                                 {
-                                    palabra: "Silhouette",
-                                    romaji: "Shiruetto",
-                                    opciones: ["Blue Bird", "Sign", "Closer", "Diver"],
+                                    palabra: "R★O★C★K★S",
+                                    romaji: "rokkusu",
+                                    opciones: ["Opening 3 de Naruto", "Opening 1 de Naruto", "Ending de Naruto", "Opening de Shippuden"],
                                     respuesta: 0
                                 },
                                 {
-                                    palabra: "Blue Bird",
-                                    romaji: "Burū Bādo",
-                                    opciones: ["Silhouette", "Sign", "Closer", "Newsong"],
-                                    respuesta: 1
+                                    palabra: "ブルーバード",
+                                    romaji: "burūbādo",
+                                    opciones: ["Blue Bird - Opening 3 Shippuden", "Silhouette", "Sign", "Diver"],
+                                    respuesta: 0
                                 }
                             ]
                         }
