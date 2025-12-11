@@ -3,163 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MangaLearn | Aprende Japonés</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Quiz de Manga y Openings</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Pantallas de la aplicación -->
-    <div id="pantalla-inicio" class="pantalla activa">
-        <div class="header">
-            <div class="logo">
-                <i class="fas fa-language"></i>
-                <span>MangaLearn</span>
+    <!-- Header con título y saldo -->
+    <header class="header">
+        <div class="header-content">
+            <h1 class="titulo-principal">
+                <i class="fas fa-gamepad"></i> Quiz Otaku
+            </h1>
+            <div class="saldo-container">
+                <i class="fas fa-coins"></i>
+                <span id="saldo-soles">0</span> Soles
             </div>
-            <h1 class="titulo-principal">Domina el Japonés<br>con tus Mangas Favoritos</h1>
-            <p class="subtitulo">Aprende vocabulario japonés de forma interactiva y divertida</p>
         </div>
-        
-        <main class="contenedor">
-            <div class="seccion">
-                <h2 class="seccion-titulo">Selecciona un Manga</h2>
-                <div id="lista-mangas" class="grid-lista">
-                    <!-- Mangas cargados dinámicamente -->
+    </header>
+
+    <!-- Pantalla de Inicio -->
+    <main class="container">
+        <section id="pantalla-inicio" class="pantalla activa">
+            <div class="temas-container">
+                <h2 class="seccion-titulo">Selecciona un Tema</h2>
+                <div id="lista-temas" class="lista-temas">
+                    <!-- Los temas se cargan dinámicamente desde vocabulario.js -->
                 </div>
             </div>
-        </main>
-        
-        <div class="footer">
-            <p>Las palabras difíciles se guardan automáticamente para repaso</p>
-        </div>
-    </div>
+        </section>
 
-    <div id="pantalla-mazos" class="pantalla">
-        <div class="header">
-            <button id="btn-volver-inicio" class="btn-icono">
-                <i class="fas fa-arrow-left"></i>
+        <!-- Pantalla de Subtemas -->
+        <section id="pantalla-subtemas" class="pantalla">
+            <button id="btn-volver-temas" class="btn-volver">
+                <i class="fas fa-arrow-left"></i> Volver a Temas
             </button>
-            <h2 id="titulo-manga-actual" class="titulo-seccion"></h2>
-            <div class="placeholder"></div>
-        </div>
-        
-        <main class="contenedor">
-            <div class="seccion">
-                <h3 class="seccion-subtitulo">Selecciona un Mazo</h3>
-                <p class="seccion-descripcion">Cada mazo contiene 10 palabras para practicar</p>
-                
-                <div id="lista-mazos" class="grid-lista">
-                    <!-- Mazos cargados dinámicamente -->
+            <h2 id="titulo-tema-actual" class="seccion-titulo"></h2>
+            <div id="lista-subtemas" class="lista-subtemas">
+                <!-- Los subtemas se cargan dinámicamente -->
+            </div>
+        </section>
+
+        <!-- Pantalla de Mazos -->
+        <section id="pantalla-mazos" class="pantalla">
+            <button id="btn-volver-subtemas" class="btn-volver">
+                <i class="fas fa-arrow-left"></i> Volver
+            </button>
+            <h2 id="titulo-subtema-actual" class="seccion-titulo"></h2>
+            <div class="mazo-info">
+                <div class="progreso-container">
+                    <div class="progreso-bar">
+                        <div class="progreso-fill" id="progreso-mazo">0%</div>
+                    </div>
+                    <span class="progreso-texto" id="texto-progreso">0/0 completado</span>
                 </div>
-                
-                <div class="mazo-especial">
-                    <div class="mazo-header">
-                        <i class="fas fa-fire color-accent"></i>
-                        <h4>Mazo de Palabras Difíciles</h4>
-                    </div>
-                    <p>Repasa las palabras que marcaste como difíciles</p>
-                    <div class="mazo-info">
-                        <span id="contador-dificiles" class="badge">0 palabras</span>
-                        <button id="btn-practicar-dificiles" class="btn btn-accent" disabled>
-                            Practicar
-                        </button>
-                    </div>
+                <div class="recompensa-info">
+                    <i class="fas fa-trophy"></i>
+                    <span>Recompensa: <strong id="recompensa-mazo">2</strong> Soles</span>
                 </div>
             </div>
-        </main>
-    </div>
+            <div id="lista-mazos" class="lista-mazos">
+                <!-- Los mazos se cargan dinámicamente -->
+            </div>
+        </section>
 
-    <div id="pantalla-quiz" class="pantalla">
-        <div class="header-quiz">
-            <div class="quiz-header-top">
-                <button id="btn-salir-quiz" class="btn-icono">
-                    <i class="fas fa-times"></i>
+        <!-- Pantalla del Quiz -->
+        <section id="pantalla-quiz" class="pantalla">
+            <div class="quiz-header">
+                <button id="btn-volver-mazos" class="btn-volver btn-volver-quiz">
+                    <i class="fas fa-arrow-left"></i> Volver
                 </button>
                 <div class="quiz-progreso">
-                    <span id="contador-pregunta">0/10</span>
-                    <div class="barra-progreso">
-                        <div id="barra-progreso" class="progreso-fill"></div>
-                    </div>
+                    <span id="pregunta-actual">1</span> / <span id="total-preguntas">10</span>
                 </div>
-                <button id="btn-marcar-dificil" class="btn-icono">
-                    <i class="far fa-flag"></i>
-                </button>
+                <div class="quiz-timer">
+                    <i class="fas fa-clock"></i> <span id="tiempo">0s</span>
+                </div>
             </div>
-        </div>
-        
-        <main class="contenedor-quiz">
-            <div class="quiz-contenido">
-                <div class="palabra-display">
-                    <div class="palabra-japones" id="palabra-japones">言葉</div>
-                    <div class="palabra-romaji" id="palabra-romaji">kotoba</div>
+
+            <div class="quiz-container">
+                <div class="palabra-central" id="palabra-central">
+                    Cargando...
                 </div>
                 
-                <div class="opciones-container">
-                    <div class="opciones-grid">
-                        <!-- Opciones cargadas dinámicamente -->
-                    </div>
+                <div class="romaji-display" id="romaji-display">
+                    <!-- Aquí aparecerá el romaji después de responder -->
                 </div>
-                
-                <div id="feedback-area" class="feedback-area oculto">
-                    <div class="feedback-content">
-                        <!-- Feedback cargado dinámicamente -->
-                    </div>
-                    <button id="btn-siguiente" class="btn btn-primary btn-ancho">
+
+                <div class="opciones-grid">
+                    <div class="opcion" data-index="0"></div>
+                    <div class="opcion" data-index="1"></div>
+                    <div class="opcion" data-index="2"></div>
+                    <div class="opcion" data-index="3"></div>
+                </div>
+
+                <div class="quiz-feedback" id="quiz-feedback">
+                    <!-- Mensaje de correcto/incorrecto -->
+                </div>
+
+                <div class="quiz-controls">
+                    <button id="btn-siguiente" class="btn-siguiente" disabled>
                         Siguiente <i class="fas fa-arrow-right"></i>
                     </button>
                 </div>
             </div>
-        </main>
-    </div>
+        </section>
+    </main>
 
-    <div id="pantalla-resultados" class="pantalla">
-        <div class="header">
-            <h2 class="titulo-seccion">Resultados</h2>
+    <!-- Notificación de recompensa -->
+    <div id="notificacion" class="notificacion">
+        <div class="notificacion-content">
+            <i class="fas fa-gift"></i>
+            <span id="notificacion-texto"></span>
         </div>
-        
-        <main class="contenedor">
-            <div class="resultados-container">
-                <div class="resultados-stats">
-                    <div class="stat-card correctas">
-                        <div class="stat-numero" id="correctas-count">0</div>
-                        <div class="stat-label">Correctas</div>
-                    </div>
-                    <div class="stat-card total">
-                        <div class="stat-numero" id="total-count">10</div>
-                        <div class="stat-label">Total</div>
-                    </div>
-                    <div class="stat-card incorrectas">
-                        <div class="stat-numero" id="incorrectas-count">0</div>
-                        <div class="stat-label">Incorrectas</div>
-                    </div>
-                </div>
-                
-                <div class="resultados-mensaje">
-                    <h3 id="mensaje-resultado">¡Excelente trabajo!</h3>
-                    <p id="detalle-resultado">Has completado el mazo satisfactoriamente</p>
-                </div>
-                
-                <div id="palabras-dificiles-section" class="palabras-dificiles oculto">
-                    <h4>Palabras marcadas como difíciles</h4>
-                    <div id="lista-palabras-dificiles" class="lista-dificiles">
-                        <!-- Lista dinámica -->
-                    </div>
-                </div>
-                
-                <div class="acciones-resultados">
-                    <button id="btn-repetir-mazo" class="btn btn-secondary">
-                        <i class="fas fa-redo"></i> Repetir Mazo
-                    </button>
-                    <button id="btn-volver-manga" class="btn btn-primary">
-                        <i class="fas fa-book"></i> Volver al Manga
-                    </button>
-                </div>
-            </div>
-        </main>
     </div>
 
+    <!-- Scripts -->
     <script src="vocabulario.js"></script>
-    <script src="sistemas.js"></script>
+    <script src="sistema.js"></script>
     <script src="main.js"></script>
 </body>
 </html>
