@@ -1,295 +1,406 @@
-// Sistema central de gestión
+// Sistema de gestión: dinero, EXP, eventos, probabilidades
+
 class SistemaJuego {
     constructor() {
         this.dinero = 100;
-        this.chicaActiva = null;
+        this.mazosCompletados = 0;
+        this.expTotal = 0;
         this.palabrasDificiles = [];
-        this.mazoDificilTemporal = null;
-        this.estadoMazos = JSON.parse(localStorage.getItem('estadoMazos')) || {};
-        this.estadoChicas = JSON.parse(localStorage.getItem('estadoChicas')) || {};
-        this.inventario = JSON.parse(localStorage.getItem('inventario')) || { condones: 0, flores: 0, chocolate: 0 };
+        this.mazoDificilesTemporal = [];
+        this.ultimoMazoCompletado = null;
+        this.estadisticas = {
+            palabrasAprendidas: 0,
+            palabrasFalladas: 0,
+            tiempoEstudiado: 0,
+            dineroGastado: 0,
+            dineroGanado: 0
+        };
+        
+        this.cargarProgreso();
     }
-    
-    // Sistema de dinero
-    agregarDinero(cantidad) {
+
+    // ========== SISTEMA DE DINERO ==========
+    agregarDinero(cantidad, motivo = "") {
         this.dinero += cantidad;
-        this.actualizarDisplayDinero();
-        this.guardarEstado();
-        this.reproducirSonido('dinero');
+        if (cantidad > 0) {
+            this.estadisticas.dineroGanado += cantidad;
+        }
+        this.guardarProgreso();
+        this.actualizarUI();
+        
+        if (motivo) {
+            this.mostrarNotificacion(`+${cantidad} soles (${motivo})`, "success");
+        }
         return this.dinero;
     }
-    
-    gastarDinero(cantidad) {
+
+    gastarDinero(cantidad, motivo = "") {
         if (this.dinero >= cantidad) {
             this.dinero -= cantidad;
-            this.actualizarDisplayDinero();
-            this.guardarEstado();
+            this.estadisticas.dineroGastado += cantidad;
+            this.guardarProgreso();
+            this.actualizarUI();
+            
+            if (motivo) {
+                this.mostrarNotificacion(`-${cantidad} soles (${motivo})`, "warning");
+            }
             return true;
         }
+        this.mostrarNotificacion("Dinero insuficiente", "error");
         return false;
     }
-    
-    actualizarDisplayDinero() {
-        const displays = ['dinero-total', 'dinero-mangas', 'dinero-rpg'];
-        displays.forEach(id => {
-            const elemento = document.getElementById(id);
-            if (elemento) {
-                elemento.textContent = this.dinero;
-            }
-        });
-    }
-    
-    // Sistema de mazos
-    calcularRecompensaMazo(mazoId, porcentajeCompletado) {
+
+    // ========== SISTEMA DE QUIZ ==========
+    calcularRecompensaMazo(porcentajeCompletado, esMazoDificil = false) {
         const base = 2; // 2 soles por mazo al 100%
-        let recompensa = (base * porcentajeCompletado) / 100;
+        let recompensa = (porcentajeCompletado / 100) * base;
         
-        // Bonificación por mazo de palabras difíciles
-        if (this.mazoDificilTemporal && this.mazoDificilTemporal.id === mazoId) {
-            recompensa *= 3;
+        if (esMazoDificil) {
+            recompensa *= 3; // Triple recompensa
         }
         
-        return Math.round(recompensa * 100) / 100;
+        return Math.round(recompensa * 100) / 100; // Redondear a 2 decimales
     }
-    
-    marcarPalabraDificil(palabra) {
-        palabra.dificil = true;
-        if (!this.palabrasDificiles.some(p => p.id === palabra.id)) {
-            this.palabrasDificiles.push(palabra);
+
+    procesarResultadoMazo(mazoId, mangaId, porcentaje, palabrasFalladas) {
+        const recompensa = this.calcularRecompensaMazo(porcentaje);
+        this.agregarDinero(recompensa, "Completar mazo");
+        
+        this.mazosCompletados++;
+        this.estadisticas.palabrasAprendidas += 10 - palabrasFalladas;
+        this.estadisticas.palabrasFalladas += palabrasFalladas;
+        
+        // Guardar progreso del mazo
+        this.guardarProgresoMazo(mangaId, mazoId, porcentaje);
+        
+        // Si es 100%, mostrar evento aleatorio
+        if (porcentaje === 100) {
+            this.ultimoMazoCompletado = { mangaId, mazoId };
+            setTimeout(() => this.mostrarEventoAleatorio(), 1000);
         }
-        this.guardarEstado();
+        
+        return recompensa;
     }
-    
-    crearMazoDificilTemporal() {
-        if (this.palabrasDificiles.length > 0) {
-            this.mazoDificilTemporal = {
-                id: 'dificil-temporal',
-                nombre: 'Palabras Difíciles',
-                palabras: [...this.palabrasDificiles],
-                temporal: true
+
+    // ========== PALABRAS DIFÍCILES ==========
+    marcarPalabraDificil(palabra, mangaId, mazoId) {
+        const palabraExistente = this.palabrasDificiles.find(
+            p => p.japones === palabra.japones && p.mangaId === mangaId && p.mazoId === mazoId
+        );
+        
+        if (!palabraExistente) {
+            const palabraDificil = {
+                ...palabra,
+                mangaId,
+                mazoId,
+                fechaMarcada: new Date().toISOString(),
+                vecesFallada: 1
             };
-            return this.mazoDificilTemporal;
+            this.palabrasDificiles.push(palabraDificil);
+            this.guardarProgreso();
+            return true;
+        } else {
+            palabraExistente.vecesFallada++;
+            this.guardarProgreso();
+            return false;
         }
-        return null;
     }
-    
+
+    eliminarPalabraDificil(palabraId) {
+        this.palabrasDificiles = this.palabrasDificiles.filter(p => p.id !== palabraId);
+        this.guardarProgreso();
+    }
+
     limpiarPalabrasDificiles() {
         this.palabrasDificiles = [];
-        this.mazoDificilTemporal = null;
-        this.guardarEstado();
+        this.mazoDificilesTemporal = [];
+        this.guardarProgreso();
+        this.mostrarNotificacion("Palabras difíciles eliminadas", "success");
     }
-    
-    // Sistema de eventos aleatorios
-    generarEventoAleatorio() {
-        const eventos = CONTENIDO.eventos;
-        let totalProbabilidad = eventos.reduce((sum, e) => sum + e.probabilidad, 0);
-        let random = Math.random() * totalProbabilidad;
-        
-        for (const evento of eventos) {
-            if (random < evento.probabilidad) {
-                return evento;
-            }
-            random -= evento.probabilidad;
+
+    crearMazoDificilesTemporal() {
+        if (this.palabrasDificiles.length === 0) {
+            this.mostrarNotificacion("No hay palabras difíciles", "warning");
+            return false;
         }
         
-        return eventos[eventos.length - 1];
-    }
-    
-    mostrarEvento(evento) {
-        const modal = document.getElementById('modal-evento');
-        const videoContainer = document.getElementById('video-evento-container');
+        // Crear mazo temporal con hasta 10 palabras difíciles
+        this.mazoDificilesTemporal = [...this.palabrasDificiles]
+            .sort(() => Math.random() - 0.5)
+            .slice(0, 10)
+            .map((palabra, index) => ({
+                ...palabra,
+                id: `dificil-${index}`,
+                opciones: this.generarOpcionesAleatorias(palabra.significado)
+            }));
         
-        videoContainer.innerHTML = `
-            <h4>${evento.nombre}</h4>
-            <div class="video-placeholder">
-                <i class="fas fa-video" style="font-size: 4rem;"></i>
-                <p>Video especial desbloqueado</p>
-                <p>+${evento.recompensa} Soles</p>
+        return true;
+    }
+
+    // ========== EVENTOS ALEATORIOS ==========
+    mostrarEventoAleatorio() {
+        const evento = this.seleccionarEventoAleatorio();
+        const modal = document.getElementById('evento-modal');
+        const contenido = document.getElementById('evento-contenido');
+        
+        if (!modal || !contenido) return;
+        
+        contenido.innerHTML = `
+            <div class="evento-header">
+                <h4>¡Felicidades! Has completado un mazo al 100%</h4>
+                <p>Selecciona un video especial para ver:</p>
+            </div>
+            <div class="videos-container" id="evento-videos">
+                ${evento.videos.map(video => `
+                    <div class="video-item" data-id="${video.id}" data-probabilidad="${video.probabilidad}">
+                        <i class="fas ${video.icono}"></i>
+                        <h5>${video.nombre}</h5>
+                        <p>${video.descripcion}</p>
+                        <small>Probabilidad: ${(video.probabilidad * 100).toFixed(0)}%</small>
+                    </div>
+                `).join('')}
             </div>
         `;
         
-        modal.classList.remove('oculto');
+        modal.classList.add('active');
         
-        // Agregar recompensa
-        this.agregarDinero(evento.recompensa);
-        
-        return new Promise(resolve => {
-            document.getElementById('btn-cerrar-evento').onclick = () => {
-                modal.classList.add('oculto');
-                resolve();
-            };
-        });
+        // Agregar event listeners a los videos
+        setTimeout(() => {
+            document.querySelectorAll('.video-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    this.procesarSeleccionVideo(item.dataset.id, item.dataset.probabilidad);
+                });
+            });
+        }, 100);
     }
-    
-    // Sistema de EXP para chicas
-    agregarExpChica(chicaId, exp) {
-        if (!this.estadoChicas[chicaId]) {
-            this.estadoChicas[chicaId] = {
-                exp: 0,
-                nivel: 1,
-                expParaSiguienteNivel: 100
-            };
-        }
+
+    seleccionarEventoAleatorio() {
+        // Usar los eventos de contenido.js
+        const eventos = window.CONTENIDO?.eventos || [
+            { id: 0, nombre: "Video Especial", probabilidad: 1, recompensa: 10, icono: "fa-gift", descripcion: "Contenido exclusivo" }
+        ];
         
-        this.estadoChicas[chicaId].exp += exp;
-        
-        // Subir de nivel
-        while (this.estadoChicas[chicaId].exp >= this.estadoChicas[chicaId].expParaSiguienteNivel) {
-            this.estadoChicas[chicaId].exp -= this.estadoChicas[chicaId].expParaSiguienteNivel;
-            this.estadoChicas[chicaId].nivel++;
-            this.estadoChicas[chicaId].expParaSiguienteNivel = 
-                Math.floor(this.estadoChicas[chicaId].expParaSiguienteNivel * 1.5);
-            
-            // Mostrar notificación de nivel
-            this.mostrarNotificacion(`${this.obtenerNombreChica(chicaId)} ha subido al nivel ${this.estadoChicas[chicaId].nivel}!`);
-        }
-        
-        this.guardarEstado();
-        return this.estadoChicas[chicaId];
+        return {
+            videos: eventos.map(e => ({
+                ...e,
+                icono: e.icono.startsWith('fa-') ? e.icono : `fa-${e.icono}`
+            }))
+        };
     }
-    
-    calcularExpPorPalabra(chicaId) {
-        const nivel = this.estadoChicas[chicaId]?.nivel || 1;
-        return 10 + (nivel * 2);
-    }
-    
-    // Sistema de actividades íntimas
-    realizarActividadIntima(chicaId, actividad) {
-        const chicaEstado = this.estadoChicas[chicaId];
-        if (!chicaEstado) return { exito: false, mensaje: 'Chica no encontrada' };
-        
-        // Verificar requisitos
-        if (chicaEstado.nivel < actividad.nivelRequerido) {
-            return { exito: false, mensaje: 'Nivel insuficiente' };
-        }
-        
-        if (actividad.requiereCondones && this.inventario.condones <= 0) {
-            return { exito: false, mensaje: 'Necesitas condones' };
-        }
-        
-        // Verificar dinero
-        if (!this.gastarDinero(actividad.costo)) {
-            return { exito: false, mensaje: 'Dinero insuficiente' };
-        }
-        
-        // Usar condones si es necesario
-        if (actividad.requiereCondones) {
-            this.inventario.condones--;
-        }
-        
-        // Calcular probabilidad de éxito
-        let probabilidad = actividad.probabilidadBase;
-        probabilidad += (chicaEstado.nivel - actividad.nivelRequerido) * 0.02;
-        probabilidad = Math.min(probabilidad, 0.95); // Máximo 95%
-        
-        const exito = Math.random() < probabilidad;
+
+    procesarSeleccionVideo(videoId, probabilidad) {
+        const random = Math.random();
+        const exito = random <= parseFloat(probabilidad);
         
         if (exito) {
-            this.agregarExpChica(chicaId, actividad.exp);
-            return { 
-                exito: true, 
-                mensaje: '¡Éxito! La actividad fue especial',
-                expGanada: actividad.exp
-            };
+            const recompensa = 10 + Math.floor(Math.random() * 40); // 10-50 soles
+            this.agregarDinero(recompensa, "Evento especial");
+            this.mostrarNotificacion(`¡Video desbloqueado! +${recompensa} soles`, "success");
         } else {
-            return { 
-                exito: false, 
-                mensaje: CONTENIDO.chicas[chicaId].nombre + actividad.mensajeFallo
-            };
-        }
-    }
-    
-    // Sistema de compras
-    comprarItem(itemId, cantidad = 1) {
-        const item = CONTENIDO.items[itemId];
-        if (!item) return false;
-        
-        const costoTotal = item.precio * cantidad;
-        if (this.gastarDinero(costoTotal)) {
-            this.inventario[itemId] = (this.inventario[itemId] || 0) + cantidad;
-            this.guardarEstado();
-            return true;
-        }
-        return false;
-    }
-    
-    // Utilidades
-    obtenerNombreChica(chicaId) {
-        return CONTENIDO.chicas[chicaId]?.nombre || 'Desconocida';
-    }
-    
-    mostrarNotificacion(mensaje, tipo = 'info') {
-        // Implementación básica de notificación
-        console.log(`[${tipo.toUpperCase()}] ${mensaje}`);
-        alert(mensaje);
-    }
-    
-    reproducirSonido(tipo) {
-        const audio = document.getElementById(`audio-${tipo}`);
-        if (audio) {
-            audio.currentTime = 0;
-            audio.play().catch(e => console.log('Error reproduciendo sonido:', e));
-        }
-    }
-    
-    mostrarResultado(titulo, mensaje, recompensa = null) {
-        const modal = document.getElementById('modal-resultado');
-        document.getElementById('titulo-resultado').textContent = titulo;
-        document.getElementById('mensaje-resultado').textContent = mensaje;
-        
-        const recompensaContainer = document.getElementById('recompensa-resultado');
-        if (recompensa) {
-            recompensaContainer.innerHTML = `
-                <div class="recompensa-display">
-                    <i class="fas fa-coins"></i>
-                    <span>+${recompensa} Soles</span>
-                </div>
-            `;
-        } else {
-            recompensaContainer.innerHTML = '';
+            this.mostrarNotificacion("El video no pudo cargarse", "warning");
         }
         
-        modal.classList.remove('oculto');
+        this.cerrarModalEvento();
+    }
+
+    cerrarModalEvento() {
+        const modal = document.getElementById('evento-modal');
+        if (modal) {
+            modal.classList.remove('active');
+        }
+    }
+
+    // ========== PROBABILIDADES Y CÁLCULOS ==========
+    generarOpcionesAleatorias(respuestaCorrecta) {
+        const opciones = [respuestaCorrecta];
+        const todasPalabras = this.obtenerTodasPalabras();
         
-        return new Promise(resolve => {
-            document.getElementById('btn-cerrar-resultado').onclick = () => {
-                modal.classList.add('oculto');
-                resolve();
-            };
-        });
-    }
-    
-    // Persistencia
-    guardarEstado() {
-        localStorage.setItem('estadoMazos', JSON.stringify(this.estadoMazos));
-        localStorage.setItem('estadoChicas', JSON.stringify(this.estadoChicas));
-        localStorage.setItem('inventario', JSON.stringify(this.inventario));
-        localStorage.setItem('dinero', this.dinero.toString());
-    }
-    
-    cargarEstado() {
-        const dineroGuardado = localStorage.getItem('dinero');
-        if (dineroGuardado) {
-            this.dinero = parseInt(dineroGuardado);
+        // Seleccionar 3 opciones incorrectas aleatorias
+        while (opciones.length < 4) {
+            const randomIndex = Math.floor(Math.random() * todasPalabras.length);
+            const opcion = todasPalabras[randomIndex].significado;
+            if (!opciones.includes(opcion)) {
+                opciones.push(opcion);
+            }
         }
-        this.actualizarDisplayDinero();
+        
+        // Mezclar opciones
+        return this.mezclarArray(opciones);
     }
-    
-    reiniciarJuego() {
-        if (confirm('¿Estás seguro de reiniciar todo el progreso?')) {
-            localStorage.clear();
-            this.dinero = 100;
-            this.estadoMazos = {};
-            this.estadoChicas = {};
-            this.inventario = { condones: 0, flores: 0, chocolate: 0 };
-            this.palabrasDificiles = [];
-            this.mazoDificilTemporal = null;
-            this.guardarEstado();
-            this.cargarEstado();
-            location.reload();
+
+    obtenerTodasPalabras() {
+        let todasPalabras = [];
+        if (window.VOCABULARIO) {
+            window.VOCABULARIO.mangas.forEach(manga => {
+                manga.mazos.forEach(mazo => {
+                    todasPalabras = todasPalabras.concat(mazo.palabras);
+                });
+            });
         }
+        return todasPalabras;
+    }
+
+    mezclarArray(array) {
+        const nuevoArray = [...array];
+        for (let i = nuevoArray.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [nuevoArray[i], nuevoArray[j]] = [nuevoArray[j], nuevoArray[i]];
+        }
+        return nuevoArray;
+    }
+
+    calcularProbabilidadExito(nivel, baseProbabilidad = 0.01) {
+        // Probabilidad aumenta con el nivel
+        return Math.min(baseProbabilidad * nivel, 0.99);
+    }
+
+    // ========== SISTEMA DE GUARDADO ==========
+    guardarProgreso() {
+        const progreso = {
+            dinero: this.dinero,
+            mazosCompletados: this.mazosCompletados,
+            expTotal: this.expTotal,
+            palabrasDificiles: this.palabrasDificiles,
+            estadisticas: this.estadisticas,
+            fechaGuardado: new Date().toISOString()
+        };
+        
+        try {
+            localStorage.setItem('japaneseRPG_progreso', JSON.stringify(progreso));
+        } catch (e) {
+            console.error("Error guardando progreso:", e);
+        }
+    }
+
+    cargarProgreso() {
+        try {
+            const guardado = localStorage.getItem('japaneseRPG_progreso');
+            if (guardado) {
+                const progreso = JSON.parse(guardado);
+                this.dinero = progreso.dinero || 100;
+                this.mazosCompletados = progreso.mazosCompletados || 0;
+                this.expTotal = progreso.expTotal || 0;
+                this.palabrasDificiles = progreso.palabrasDificiles || [];
+                this.estadisticas = progreso.estadisticas || this.estadisticas;
+            }
+        } catch (e) {
+            console.error("Error cargando progreso:", e);
+        }
+    }
+
+    guardarProgresoMazo(mangaId, mazoId, porcentaje) {
+        const clave = `mazo_${mangaId}_${mazoId}`;
+        try {
+            localStorage.setItem(clave, porcentaje.toString());
+        } catch (e) {
+            console.error("Error guardando progreso del mazo:", e);
+        }
+    }
+
+    cargarProgresoMazo(mangaId, mazoId) {
+        const clave = `mazo_${mangaId}_${mazoId}`;
+        try {
+            const porcentaje = localStorage.getItem(clave);
+            return porcentaje ? parseInt(porcentaje) : 0;
+        } catch (e) {
+            console.error("Error cargando progreso del mazo:", e);
+            return 0;
+        }
+    }
+
+    // ========== UI Y NOTIFICACIONES ==========
+    actualizarUI() {
+        // Actualizar dinero
+        const dineroElement = document.getElementById('money');
+        if (dineroElement) {
+            dineroElement.textContent = this.dinero;
+        }
+        
+        // Actualizar mazos completados
+        const mazosElement = document.getElementById('mazos-completados');
+        if (mazosElement) {
+            mazosElement.textContent = this.mazosCompletados;
+        }
+        
+        // Actualizar EXP total
+        const expElement = document.getElementById('exp-total');
+        if (expElement) {
+            expElement.textContent = this.expTotal;
+        }
+        
+        // Actualizar contador de palabras difíciles
+        const dificilesCount = document.getElementById('dificiles-count');
+        if (dificilesCount) {
+            dificilesCount.textContent = `${this.palabrasDificiles.length} palabras`;
+        }
+    }
+
+    mostrarNotificacion(mensaje, tipo = "info") {
+        const notificaciones = document.getElementById('notificaciones');
+        if (!notificaciones) return;
+        
+        const notificacion = document.createElement('div');
+        notificacion.className = `notificacion ${tipo}`;
+        notificacion.innerHTML = `
+            <i class="fas ${this.obtenerIconoNotificacion(tipo)}"></i>
+            <span>${mensaje}</span>
+        `;
+        
+        notificaciones.appendChild(notificacion);
+        
+        // Remover después de 3 segundos
+        setTimeout(() => {
+            notificacion.style.opacity = '0';
+            notificacion.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                if (notificacion.parentNode) {
+                    notificaciones.removeChild(notificacion);
+                }
+            }, 300);
+        }, 3000);
+    }
+
+    obtenerIconoNotificacion(tipo) {
+        switch(tipo) {
+            case 'success': return 'fa-check-circle';
+            case 'error': return 'fa-exclamation-circle';
+            case 'warning': return 'fa-exclamation-triangle';
+            default: return 'fa-info-circle';
+        }
+    }
+
+    // ========== UTILIDADES ==========
+    formatearDinero(cantidad) {
+        return cantidad.toFixed(2);
+    }
+
+    calcularNivel(exp) {
+        return Math.floor(Math.sqrt(exp / 100)) + 1;
+    }
+
+    calcularExpParaNivel(nivel) {
+        return Math.pow((nivel - 1) * 100, 2);
+    }
+
+    calcularExpParaSiguienteNivel(expActual) {
+        const nivelActual = this.calcularNivel(expActual);
+        const expSiguienteNivel = this.calcularExpParaNivel(nivelActual + 1);
+        return expSiguienteNivel - expActual;
     }
 }
 
-// Instancia global del sistema
-const sistemaJuego = new SistemaJuego();
+// Crear instancia global del sistema
+let sistemaJuego;
+
+// Inicializar sistema cuando se cargue la página
+if (typeof window !== 'undefined') {
+    window.addEventListener('DOMContentLoaded', () => {
+        sistemaJuego = new SistemaJuego();
+        sistemaJuego.actualizarUI();
+    });
+}
+
+// Exportar para usar en otros archivos
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = SistemaJuego;
+}
