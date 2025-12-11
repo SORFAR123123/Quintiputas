@@ -160,6 +160,130 @@ body {
     font-size: 0.9rem;
 }
 
+/* Estadísticas de temas */
+.tema-estadisticas {
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: #aaa;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.tema-estadisticas i {
+    margin-right: 5px;
+}
+
+.subtema-info {
+    margin: 10px 0;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    font-size: 0.9rem;
+    color: #667eea;
+}
+
+.subtema-info i {
+    margin-right: 5px;
+}
+
+/* Mazo card mejorada */
+.mazo-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.mazo-header i {
+    font-size: 2rem;
+    color: #667eea;
+}
+
+.mazo-titulo {
+    flex-grow: 1;
+    text-align: left;
+}
+
+.mazo-titulo h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: #fff;
+}
+
+.mazo-numero {
+    font-size: 0.9rem;
+    color: #aaa;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.mazo-descripcion {
+    color: #ccc;
+    font-size: 0.95rem;
+    margin: 10px 0;
+    min-height: 40px;
+    text-align: left;
+}
+
+.mazo-estadisticas {
+    display: flex;
+    justify-content: space-around;
+    margin: 15px 0;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.estadistica {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9rem;
+}
+
+.estadistica i {
+    color: #f093fb;
+}
+
+.progreso-mazo {
+    margin-top: 10px;
+}
+
+.progreso-mini {
+    height: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 5px;
+}
+
+.progreso-fill-mini {
+    height: 100%;
+    background: linear-gradient(90deg, #00dbde, #fc00ff);
+    border-radius: 5px;
+    transition: width 0.5s ease;
+}
+
+.mazo-boton {
+    margin-top: 15px;
+    padding: 8px 15px;
+    background: rgba(102, 126, 234, 0.2);
+    border-radius: 10px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.mazo-card:hover .mazo-boton {
+    background: rgba(102, 126, 234, 0.4);
+    transform: translateY(-2px);
+}
+
 /* Información del mazo */
 .mazo-info {
     background: rgba(255, 255, 255, 0.05);
@@ -250,6 +374,7 @@ body {
 
 .palabra-central {
     font-size: 4rem;
+    font-family: 'Noto Sans JP', 'MS Gothic', 'Hiragino Kaku Gothic Pro', Meiryo, sans-serif;
     font-weight: bold;
     margin: 2rem 0;
     padding: 40px;
@@ -262,6 +387,8 @@ body {
     justify-content: center;
     text-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
     animation: glow 2s infinite alternate;
+    letter-spacing: 2px;
+    line-height: 1.4;
 }
 
 @keyframes glow {
@@ -278,6 +405,7 @@ body {
     align-items: center;
     justify-content: center;
     font-style: italic;
+    letter-spacing: 1px;
 }
 
 .opciones-grid {
@@ -299,6 +427,10 @@ body {
     align-items: center;
     justify-content: center;
     min-height: 100px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    line-height: 1.4;
 }
 
 .opcion:hover {
@@ -310,6 +442,12 @@ body {
     background: linear-gradient(135deg, #56ab2f, #a8e063);
     border-color: #56ab2f;
     color: white;
+    animation: pulseCorrecto 0.5s ease;
+}
+
+@keyframes pulseCorrecto {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
 }
 
 .opcion.incorrecta {
@@ -410,5 +548,14 @@ body {
     
     .titulo-principal {
         font-size: 1.8rem;
+    }
+    
+    .mazo-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .mazo-titulo {
+        text-align: center;
     }
 }
