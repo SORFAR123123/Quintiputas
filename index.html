@@ -3,35 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Entrenamiento Especial</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Aprendizaje Especializado</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-
 <body>
-
-    <section class="especial-section">
-        <h2>📄 ENTRENAMIENTO ESPECIAL</h2>
-
-        <div class="card-container">
-
-            <!-- CARD 1 -->
-            <div class="card card-blue">
-                <div class="card-icon red">✖</div>
-                <h3>🔥 PALABRAS FALLADAS</h3>
-                <p>Revisa y practica tus errores</p>
+    <div class="container">
+        <!-- Encabezado simplificado -->
+        <header class="header">
+            <div class="logo-container">
+                <h1 class="logo">AprendeJaponés</h1>
+                <p class="slogan">Domina el idioma paso a paso</p>
             </div>
-
-            <!-- CARD 2 -->
-            <div class="card card-purple">
-                <div class="card-img-circle">
-                    <img src="assets/nakano.png" alt="Nakano">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user-circle"></i>
                 </div>
-                <h3>💖 Quintillizas Nakano RPG</h3>
-                <p>5 hermanas + sistema único + decoración</p>
+                <div class="user-name">Estudiante</div>
             </div>
+        </header>
 
-        </div>
-    </section>
+        <!-- Sección principal -->
+        <main class="main-content">
+            <section class="especial-section">
+                <h2><i class="fas fa-star"></i> ENTRENAMIENTO ESPECIAL</h2>
+                <p class="section-subtitle">Mejora tus habilidades con estos modos de práctica</p>
 
+                <div class="card-container">
+                    <!-- CARD 1 - Palabras Falladas -->
+                    <div class="card" id="card-falladas">
+                        <div class="card-icon error-icon">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                        <h3><i class="fas fa-fire"></i> PALABRAS FALLADAS</h3>
+                        <p>Revisa y practica tus errores</p>
+                        <div class="card-counter">12 palabras por revisar</div>
+                    </div>
+
+                    <!-- CARD 2 - RPG -->
+                    <div class="card" id="card-rpg">
+                        <div class="card-img-circle" id="rpg-image">
+                            <!-- Imagen cargada desde JS -->
+                        </div>
+                        <h3><i class="fas fa-heart"></i> Quintillizas Nakano RPG</h3>
+                        <p>5 hermanas + sistema único + decoración</p>
+                        <div class="card-counter">Nivel 8 - 75% completado</div>
+                    </div>
+
+                    <!-- CARD 3 - Nuevo (ejemplo adicional) -->
+                    <div class="card" id="card-kanji">
+                        <div class="card-icon kanji-icon">
+                            <i class="fas fa-pen-nib"></i>
+                        </div>
+                        <h3><i class="fas fa-book"></i> KANJI DEL DÍA</h3>
+                        <p>Aprende un nuevo kanji cada día</p>
+                        <div class="card-counter">今日の漢字: 学</div>
+                    </div>
+
+                    <!-- CARD 4 - Nuevo (ejemplo adicional) -->
+                    <div class="card" id="card-gramatica">
+                        <div class="card-icon grammar-icon">
+                            <i class="fas fa-language"></i>
+                        </div>
+                        <h3><i class="fas fa-clipboard-list"></i> GRAMÁTICA N3</h3>
+                        <p>Estructuras gramaticales del JLPT N3</p>
+                        <div class="card-counter">15 lecciones disponibles</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección de progreso -->
+            <section class="progress-section">
+                <h2><i class="fas fa-chart-line"></i> TU PROGRESO</h2>
+                <div class="progress-container">
+                    <div class="progress-card">
+                        <div class="progress-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <h4>Racha Actual</h4>
+                        <div class="progress-value">7 días</div>
+                    </div>
+                    <div class="progress-card">
+                        <div class="progress-icon">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <h4>Palabras Dominadas</h4>
+                        <div class="progress-value">328</div>
+                    </div>
+                    <div class="progress-card">
+                        <div class="progress-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <h4>Tiempo de Estudio</h4>
+                        <div class="progress-value">42h 15m</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Navegación inferior -->
+        <nav class="bottom-nav">
+            <a href="#" class="nav-item active">
+                <i class="fas fa-home"></i>
+                <span>Inicio</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-book"></i>
+                <span>Lecciones</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-gamepad"></i>
+                <span>Juegos</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-user"></i>
+                <span>Perfil</span>
+            </a>
+        </nav>
+    </div>
+
+    <script src="imagenesvideos.js"></script>
+    <script>
+        // Inicializar las imágenes cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof cargarImagenes === 'function') {
+                cargarImagenes();
+            }
+        });
+    </script>
 </body>
 </html>
