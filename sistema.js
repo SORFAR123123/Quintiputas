@@ -1,4 +1,4 @@
-// Sistema completo del Quiz
+// Sistema completo del Quiz - CORREGIDO
 const Sistema = {
     // Estado del sistema
     estado: {
@@ -29,7 +29,8 @@ const Sistema = {
         const progresoGuardado = localStorage.getItem('quizProgreso');
         
         if (estadoGuardado) {
-            this.estado = JSON.parse(estadoGuardado);
+            const estadoParseado = JSON.parse(estadoGuardado);
+            this.estado = { ...this.estado, ...estadoParseado };
         }
         
         if (saldoGuardado) {
@@ -43,7 +44,12 @@ const Sistema = {
 
     // Guardar estado en localStorage
     guardarEstado: function() {
-        localStorage.setItem('quizEstado', JSON.stringify(this.estado));
+        localStorage.setItem('quizEstado', JSON.stringify({
+            temaActual: this.estado.temaActual,
+            subtemaActual: this.estado.subtemaActual,
+            mazoActual: this.estado.mazoActual,
+            progreso: this.estado.progreso
+        }));
         localStorage.setItem('quizSaldo', this.estado.saldo.toString());
         localStorage.setItem('quizProgreso', JSON.stringify(this.estado.progreso));
     },
@@ -76,16 +82,8 @@ const Sistema = {
     },
 
     obtenerTotalPalabras: function(mazoId) {
-        for (const tema of vocabulario.temas) {
-            for (const subtema of tema.subtemas) {
-                for (const mazo of subtema.mazos) {
-                    if (mazo.id === mazoId) {
-                        return mazo.palabras.length;
-                    }
-                }
-            }
-        }
-        return 0;
+        const mazo = this.obtenerMazoPorId(mazoId);
+        return mazo ? mazo.palabras.length : 0;
     },
 
     registrarRespuesta: function(mazoId, palabraIndex, correcta) {
@@ -169,6 +167,7 @@ const Sistema = {
                 }
             }
         }
+        console.error("Mazo no encontrado:", mazoId);
         return null;
     },
 
@@ -184,7 +183,7 @@ const Sistema = {
             correcta
         );
 
-        this.mostrarRetroalimentacion(correcta, pregunta.romaji);
+        this.mostrarRetroalimentacion(correcta, pregunta.lectura);
         
         // Habilitar botón siguiente si la respuesta fue incorrecta
         if (!correcta) {
@@ -221,6 +220,10 @@ const Sistema = {
         // Volver a la pantalla de mazos después de 3 segundos
         setTimeout(() => {
             UI.mostrarPantalla('pantalla-mazos');
+            // Recargar mazos para actualizar progreso
+            if (this.estado.subtemaActual) {
+                UI.cargarMazos(this.estado.subtemaActual);
+            }
         }, 3000);
     },
 
@@ -258,7 +261,7 @@ const Sistema = {
         }
     },
 
-    // UI helpers
+    // UI helpers - CORREGIDA LA LÓGICA DE OPCIONES
     mostrarPregunta: function() {
         const pregunta = this.obtenerPreguntaActual();
         if (!pregunta) return;
@@ -270,7 +273,7 @@ const Sistema = {
         const mazo = this.obtenerMazoActual();
 
         // Actualizar palabra central
-        palabraElemento.textContent = pregunta.palabra;
+        palabraElemento.textContent = pregunta.japones || pregunta.palabra;
         
         // Limpiar romaji
         document.getElementById('romaji-display').textContent = '';
@@ -280,6 +283,13 @@ const Sistema = {
         feedbackElemento.textContent = '';
         feedbackElemento.className = 'quiz-feedback';
         
+        // Limpiar opciones
+        opcionesElementos.forEach(opcion => {
+            opcion.className = 'opcion';
+            opcion.textContent = '';
+            opcion.dataset.correcta = 'false';
+        });
+        
         // Actualizar contadores
         preguntaActualElemento.textContent = this.estado.preguntaActual + 1;
         totalPreguntasElemento.textContent = mazo.palabras.length;
@@ -287,22 +297,38 @@ const Sistema = {
         // Deshabilitar botón siguiente
         document.getElementById('btn-siguiente').disabled = true;
         
-        // Mezclar opciones
-        const opcionesMezcladas = [...pregunta.opciones];
-        for (let i = opcionesMezcladas.length - 1; i > 0; i--) {
+        // CORRECCIÓN: Crear array de todas las opciones incorrectas
+        const opcionesIncorrectas = [...pregunta.opciones];
+        // Quitar la respuesta correcta del array
+        const respuestaCorrecta = opcionesIncorrectas.splice(pregunta.respuesta, 1)[0];
+        
+        // Mezclar las opciones incorrectas
+        for (let i = opcionesIncorrectas.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            [opcionesMezcladas[i], opcionesMezcladas[j]] = [opcionesMezcladas[j], opcionesMezcladas[i]];
+            [opcionesIncorrectas[i], opcionesIncorrectas[j]] = [opcionesIncorrectas[j], opcionesIncorrectas[i]];
         }
         
-        // Insertar la respuesta correcta en una posición aleatoria
-        const posicionCorrecta = Math.floor(Math.random() * 4);
-        opcionesMezcladas[posicionCorrecta] = pregunta.opciones[pregunta.respuesta];
+        // Tomar solo 3 opciones incorrectas (ya que necesitamos 4 opciones en total)
+        const tresOpcionesIncorrectas = opcionesIncorrectas.slice(0, 3);
+        
+        // Combinar respuesta correcta + 3 incorrectas
+        const todasLasOpciones = [respuestaCorrecta, ...tresOpcionesIncorrectas];
+        
+        // Mezclar las 4 opciones
+        for (let i = todasLasOpciones.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [todasLasOpciones[i], todasLasOpciones[j]] = [todasLasOpciones[j], todasLasOpciones[i]];
+        }
+        
+        // Encontrar la nueva posición de la respuesta correcta
+        const nuevaPosicionCorrecta = todasLasOpciones.indexOf(respuestaCorrecta);
         
         // Actualizar opciones en UI
         opcionesElementos.forEach((opcion, index) => {
-            opcion.textContent = opcionesMezcladas[index];
-            opcion.className = 'opcion';
-            opcion.dataset.correcta = (opcionesMezcladas[index] === pregunta.opciones[pregunta.respuesta]).toString();
+            opcion.textContent = todasLasOpciones[index];
+            opcion.dataset.correcta = (index === nuevaPosicionCorrecta).toString();
+            // Guardar el índice original para la respuesta
+            opcion.dataset.respuestaIndex = (todasLasOpciones[index] === respuestaCorrecta) ? pregunta.respuesta : -1;
         });
     },
 
@@ -323,11 +349,11 @@ const Sistema = {
             feedbackElemento.className = 'quiz-feedback incorrecto';
         }
         
-        // Resaltar opciones
+        // Resaltar opciones correcta/incorrectas
         opcionesElementos.forEach(opcion => {
             if (opcion.dataset.correcta === 'true') {
                 opcion.classList.add('correcta');
-            } else if (opcion.textContent !== '' && opcion.dataset.correcta === 'false') {
+            } else {
                 opcion.classList.add('incorrecta');
             }
         });
