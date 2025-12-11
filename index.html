@@ -15,16 +15,54 @@
                 <h1 class="logo">AprendeJaponés</h1>
                 <p class="slogan">Domina el idioma paso a paso</p>
             </div>
-            <div class="user-info">
-                <div class="user-avatar">
-                    <i class="fas fa-user-circle"></i>
+            <div class="quiz-score">
+                <div class="score-container">
+                    <i class="fas fa-trophy"></i>
+                    <span>Puntuación: <span id="score">0</span></span>
                 </div>
-                <div class="user-name">Estudiante</div>
             </div>
         </header>
 
         <!-- Sección principal -->
         <main class="main-content">
+            <!-- Sección de Quiz (ahora visible desde el inicio) -->
+            <section class="quiz-section" id="quiz-section">
+                <div class="quiz-header">
+                    <h2><i class="fas fa-brain"></i> QUIZ JAPONÉS</h2>
+                    <div class="quiz-info">
+                        <span class="quiz-counter">Pregunta <span id="current-question">1</span>/10</span>
+                        <span class="quiz-timer"><i class="fas fa-clock"></i> <span id="timer">30</span>s</span>
+                    </div>
+                </div>
+                
+                <div class="quiz-card">
+                    <div class="question-container">
+                        <h3 id="question-text">¿Cuál es el significado de esta palabra?</h3>
+                        <div class="word-display" id="word-display">勉強</div>
+                    </div>
+                    
+                    <div class="options-container" id="options-container">
+                        <!-- Las opciones se generarán dinámicamente con JS -->
+                    </div>
+                    
+                    <div class="quiz-feedback" id="quiz-feedback">
+                        <div class="feedback-content" id="feedback-content">
+                            Selecciona una respuesta para continuar
+                        </div>
+                    </div>
+                    
+                    <div class="quiz-controls">
+                        <button class="btn btn-secondary" id="skip-btn">
+                            <i class="fas fa-forward"></i> Saltar
+                        </button>
+                        <button class="btn btn-primary" id="next-btn" disabled>
+                            Siguiente <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección de Entrenamiento Especial -->
             <section class="especial-section">
                 <h2><i class="fas fa-star"></i> ENTRENAMIENTO ESPECIAL</h2>
                 <p class="section-subtitle">Mejora tus habilidades con estos modos de práctica</p>
@@ -50,17 +88,17 @@
                         <div class="card-counter">Nivel 8 - 75% completado</div>
                     </div>
 
-                    <!-- CARD 3 - Nuevo (ejemplo adicional) -->
+                    <!-- CARD 3 - Kanji -->
                     <div class="card" id="card-kanji">
                         <div class="card-icon kanji-icon">
                             <i class="fas fa-pen-nib"></i>
                         </div>
                         <h3><i class="fas fa-book"></i> KANJI DEL DÍA</h3>
                         <p>Aprende un nuevo kanji cada día</p>
-                        <div class="card-counter">今日の漢字: 学</div>
+                        <div class="card-counter" id="kanji-display">今日の漢字: 学</div>
                     </div>
 
-                    <!-- CARD 4 - Nuevo (ejemplo adicional) -->
+                    <!-- CARD 4 - Gramática -->
                     <div class="card" id="card-gramatica">
                         <div class="card-icon grammar-icon">
                             <i class="fas fa-language"></i>
@@ -123,13 +161,6 @@
     </div>
 
     <script src="imagenesvideos.js"></script>
-    <script>
-        // Inicializar las imágenes cuando el DOM esté listo
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof cargarImagenes === 'function') {
-                cargarImagenes();
-            }
-        });
-    </script>
+    <script src="quiz.js"></script>
 </body>
 </html>
