@@ -1,778 +1,593 @@
-// Archivo principal que coordina todos los sistemas - VERSIÓN CORREGIDA
+// ===== APLICACIÓN PRINCIPAL =====
+// Coordina todos los componentes y maneja la interfaz de usuario
 
-class AplicacionPrincipal {
+import vocabulario from './vocabulario.js';
+import sistema from './sistemas.js';
+
+class Aplicacion {
     constructor() {
-        this.mangaActual = null;
-        this.mazoActual = null;
-        this.quizActivo = false;
-        this.palabraActual = null;
-        this.opcionesActuales = [];
-        this.indicePalabra = 0;
-        this.palabrasFalladas = 0;
-        this.palabrasAcertadas = 0;
-        this.palabrasMarcadasDificiles = [];
-        
-        // Inicializar sistemas
-        this.sistemaJuego = window.sistemaJuego || new SistemaJuego();
-        this.sistemaRPG = window.sistemaRPG || new SistemaRPGNovias();
-        
-        // Inicializar UI inmediatamente
-        this.inicializarUI();
-        
-        // Configurar event listeners después de inicializar UI
-        setTimeout(() => this.configurarEventListeners(), 100);
-    }
-
-    // ========== INICIALIZACIÓN ==========
-    configurarEventListeners() {
-        console.log("Configurando event listeners...");
-        
-        // Navegación principal
-        const btnVocabulario = document.getElementById('btn-vocabulario');
-        const btnNovias = document.getElementById('btn-novias');
-        const btnDificiles = document.getElementById('btn-dificiles');
-        
-        if (btnVocabulario) {
-            btnVocabulario.addEventListener('click', () => {
-                console.log("Click en vocabulario");
-                this.mostrarSeccion('vocabulario');
-            });
-        }
-        
-        if (btnNovias) {
-            btnNovias.addEventListener('click', () => {
-                console.log("Click en novias");
-                this.mostrarSeccion('novias');
-            });
-        }
-        
-        if (btnDificiles) {
-            btnDificiles.addEventListener('click', () => {
-                console.log("Click en dificiles");
-                this.mostrarSeccion('dificiles');
-            });
-        }
-        
-        // Botones del quiz
-        const btnVolver = document.getElementById('btn-volver-mangas');
-        if (btnVolver) {
-            btnVolver.addEventListener('click', () => this.volverAMangas());
-        }
-        
-        const btnMarcarDificil = document.getElementById('btn-marcar-dificil');
-        if (btnMarcarDificil) {
-            btnMarcarDificil.addEventListener('click', () => this.marcarPalabraDificil());
-        }
-        
-        const btnLimpiar = document.getElementById('btn-limpiar-dificiles');
-        if (btnLimpiar) {
-            btnLimpiar.addEventListener('click', () => this.limpiarPalabrasDificiles());
-        }
-        
-        const btnIniciarDificiles = document.getElementById('btn-iniciar-dificiles');
-        if (btnIniciarDificiles) {
-            btnIniciarDificiles.addEventListener('click', () => this.iniciarQuizDificiles());
-        }
-        
-        const btnCerrarModal = document.getElementById('btn-cerrar-modal');
-        if (btnCerrarModal) {
-            btnCerrarModal.addEventListener('click', () => this.sistemaJuego.cerrarModalEvento());
-        }
-        
-        // Selector de novias
-        const selectNovia = document.getElementById('select-novia');
-        if (selectNovia) {
-            selectNovia.addEventListener('change', (e) => {
-                this.sistemaRPG.seleccionarNovia(parseInt(e.target.value));
-            });
-        }
-        
-        // Opciones del quiz
-        document.querySelectorAll('.option-btn').forEach((btn, index) => {
-            btn.addEventListener('click', () => this.seleccionarOpcion(index));
-        });
-        
-        // Cerrar modal al hacer clic fuera
-        const modal = document.getElementById('evento-modal');
-        if (modal) {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    this.sistemaJuego.cerrarModalEvento();
-                }
-            });
-        }
-        
-        console.log("Event listeners configurados");
-    }
-
-    inicializarUI() {
-        console.log("Inicializando UI...");
-        console.log("VOCABULARIO disponible:", window.VOCABULARIO ? "Sí" : "No");
-        console.log("CONTENIDO disponible:", window.CONTENIDO ? "Sí" : "No");
-        
-        // Cargar mangas inmediatamente
+        this.elementos = {};
+        this.inicializarElementos();
+        this.inicializarEventos();
+        this.inicializarSistema();
         this.cargarMangas();
-        
-        // Actualizar estadísticas
-        if (this.sistemaJuego) {
-            this.sistemaJuego.actualizarUI();
-        }
-        
-        // Cargar palabras difíciles
-        this.cargarPalabrasDificiles();
-        
-        // Inicializar sistema RPG
-        if (this.sistemaRPG) {
-            this.sistemaRPG.actualizarListaNovias();
-            this.sistemaRPG.mostrarDetallesNovia(this.sistemaRPG.noviaActual || 0);
-        }
-        
-        // Asegurar que la sección de vocabulario esté visible
-        setTimeout(() => {
-            this.mostrarSeccion('vocabulario');
-        }, 200);
-        
-        console.log("UI inicializada");
     }
-
-    // ========== SISTEMA DE MANGAS ==========
+    
+    // ===== INICIALIZACIÓN =====
+    inicializarElementos() {
+        // Pantallas
+        this.elementos.pantallas = {
+            inicio: document.getElementById('pantalla-inicio'),
+            mazos: document.getElementById('pantalla-mazos'),
+            quiz: document.getElementById('pantalla-quiz'),
+            resultados: document.getElementById('pantalla-resultados')
+        };
+        
+        // Botones de navegación
+        this.elementos.botones = {
+            volverInicio: document.getElementById('btn-volver-inicio'),
+            salirQuiz: document.getElementById('btn-salir-quiz'),
+            volverManga: document.getElementById('btn-volver-manga'),
+            repetirMazo: document.getElementById('btn-repetir-mazo'),
+            practicarDificiles: document.getElementById('btn-practicar-dificiles')
+        };
+        
+        // Listas dinámicas
+        this.elementos.listas = {
+            mangas: document.getElementById('lista-mangas'),
+            mazos: document.getElementById('lista-mazos'),
+            palabrasDificiles: document.getElementById('lista-palabras-dificiles')
+        };
+        
+        // Elementos del quiz
+        this.elementos.quiz = {
+            palabraJapones: document.getElementById('palabra-japones'),
+            palabraRomaji: document.getElementById('palabra-romaji'),
+            opcionesGrid: document.querySelector('.opciones-grid'),
+            feedbackArea: document.getElementById('feedback-area'),
+            btnSiguiente: document.getElementById('btn-siguiente'),
+            btnMarcarDificil: document.getElementById('btn-marcar-dificil'),
+            contadorPregunta: document.getElementById('contador-pregunta'),
+            barraProgreso: document.getElementById('barra-progreso')
+        };
+        
+        // Elementos de resultados
+        this.elementos.resultados = {
+            correctasCount: document.getElementById('correctas-count'),
+            incorrectasCount: document.getElementById('incorrectas-count'),
+            totalCount: document.getElementById('total-count'),
+            mensajeResultado: document.getElementById('mensaje-resultado'),
+            detalleResultado: document.getElementById('detalle-resultado'),
+            palabrasDificilesSection: document.getElementById('palabras-dificiles-section')
+        };
+        
+        // Títulos dinámicos
+        this.elementos.titulos = {
+            mangaActual: document.getElementById('titulo-manga-actual'),
+            contadorDificiles: document.getElementById('contador-dificiles')
+        };
+    }
+    
+    inicializarEventos() {
+        // Navegación
+        this.elementos.botones.volverInicio.addEventListener('click', () => this.mostrarPantalla('inicio'));
+        this.elementos.botones.salirQuiz.addEventListener('click', () => this.mostrarPantalla('inicio'));
+        this.elementos.botones.volverManga.addEventListener('click', () => this.mostrarPantalla('mazos'));
+        this.elementos.botones.repetirMazo.addEventListener('click', () => this.repetirMazo());
+        this.elementos.botones.practicarDificiles.addEventListener('click', () => this.iniciarMazoDificil());
+        
+        // Quiz
+        this.elementos.quiz.btnSiguiente.addEventListener('click', () => this.siguientePregunta());
+        this.elementos.quiz.btnMarcarDificil.addEventListener('click', () => this.marcarPalabraDificil());
+        
+        // Eventos del sistema
+        sistema.on('cambioPantalla', (pantalla) => this.mostrarPantalla(pantalla));
+        sistema.on('mangaSeleccionado', (mangaId) => this.mostrarMazos(mangaId));
+        sistema.on('mazoSeleccionado', (mazoId) => this.iniciarQuiz(mazoId));
+        sistema.on('palabraDificilAgregada', () => this.actualizarContadorDificiles());
+        sistema.on('nuevaPregunta', (datos) => this.mostrarPregunta(datos));
+        sistema.on('respuestaVerificada', (respuesta) => this.mostrarFeedback(respuesta));
+        sistema.on('quizFinalizado', (resultados) => this.mostrarResultados(resultados));
+    }
+    
+    inicializarSistema() {
+        // Configurar estado inicial
+        this.actualizarContadorDificiles();
+    }
+    
+    // ===== GESTIÓN DE PANTALLAS =====
+    mostrarPantalla(nombrePantalla) {
+        // Ocultar todas las pantallas
+        Object.values(this.elementos.pantallas).forEach(pantalla => {
+            pantalla.classList.remove('activa');
+        });
+        
+        // Mostrar pantalla solicitada
+        if (this.elementos.pantallas[nombrePantalla]) {
+            this.elementos.pantallas[nombrePantalla].classList.add('activa');
+            sistema.cambiarPantalla(nombrePantalla);
+        }
+        
+        // Resetear elementos del quiz si salimos
+        if (nombrePantalla !== 'quiz') {
+            this.limpiarQuiz();
+        }
+    }
+    
+    // ===== CARGA DE DATOS =====
     cargarMangas() {
-        const container = document.getElementById('mangas-container');
-        console.log("Cargando mangas en contenedor:", container);
+        const mangas = vocabulario.obtenerMangas();
+        this.elementos.listas.mangas.innerHTML = '';
         
-        if (!container) {
-            console.error("No se encontró el contenedor de mangas");
-            return;
-        }
-        
-        if (!window.VOCABULARIO) {
-            console.error("VOCABULARIO no está definido");
-            container.innerHTML = '<div class="error">Error: No se pudieron cargar los mangas</div>';
-            return;
-        }
-        
-        console.log("Mangas disponibles:", window.VOCABULARIO.mangas.length);
-        
-        // Limpiar contenedor
-        container.innerHTML = '';
-        
-        // Crear tarjetas para cada manga
-        window.VOCABULARIO.mangas.forEach(manga => {
-            console.log(`Procesando manga: ${manga.nombre} con ${manga.mazos.length} mazos`);
+        mangas.forEach(manga => {
+            const mazoCount = Object.keys(manga.mazos).length;
+            const card = this.crearElemento('div', ['card']);
             
-            const mangaCard = document.createElement('div');
-            mangaCard.className = 'manga-card';
-            mangaCard.dataset.id = manga.id;
-            
-            // Calcular progreso total del manga
-            let progresoTotal = 0;
-            let mazosCompletados = 0;
-            
-            if (manga.mazos && manga.mazos.length > 0) {
-                manga.mazos.forEach(mazo => {
-                    const progreso = this.sistemaJuego.cargarProgresoMazo(manga.id, mazo.id);
-                    progresoTotal += progreso;
-                    if (progreso === 100) mazosCompletados++;
-                });
-                progresoTotal = Math.round(progresoTotal / manga.mazos.length);
-            }
-            
-            // Crear HTML de la tarjeta
-            mangaCard.innerHTML = `
-                <div class="manga-header">
-                    <div class="manga-icon" style="background: ${manga.color || '#7e57c2'}">
-                        ${manga.icono || '📚'}
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="card-icono" style="background: ${manga.color}20; color: ${manga.color}">
+                        <i class="${manga.icono}"></i>
                     </div>
-                    <div>
-                        <div class="manga-title">${manga.nombre}</div>
-                        <div class="manga-stats">
-                            <span>${manga.mazos?.length || 0} mazos</span>
-                            <span>${progresoTotal}% completado</span>
-                        </div>
-                    </div>
+                    <h3 class="card-titulo">${manga.nombre}</h3>
                 </div>
-                <div class="manga-mazos">
-                    ${(manga.mazos || []).map((mazo, index) => {
-                        const progreso = this.sistemaJuego.cargarProgresoMazo(manga.id, mazo.id);
-                        return `
-                            <div class="mazo-item ${progreso === 100 ? 'mazo-completado' : ''}" 
-                                 data-manga="${manga.id}" 
-                                 data-mazo="${index}">
-                                <span>${mazo.nombre || `Mazo ${index + 1}`}</span>
-                                <span class="mazo-progress">${progreso}%</span>
-                            </div>
-                        `;
-                    }).join('')}
+                <p class="card-descripcion">${manga.descripcion}</p>
+                <div class="card-info">
+                    <span class="badge">${mazoCount} ${mazoCount === 1 ? 'mazo' : 'mazos'}</span>
+                    <button class="btn btn-primary btn-seleccionar" data-manga-id="${manga.id}">
+                        Seleccionar
+                    </button>
                 </div>
             `;
             
-            container.appendChild(mangaCard);
-            
-            // Agregar event listener a la tarjeta del manga
-            mangaCard.addEventListener('click', (e) => {
-                if (!e.target.closest('.mazo-item')) {
-                    console.log(`Click en manga: ${manga.nombre}`);
-                    // Aquí podrías expandir/contraer el manga si quieres
-                }
+            this.elementos.listas.mangas.appendChild(card);
+        });
+        
+        // Agregar event listeners a los botones de selección
+        document.querySelectorAll('.btn-seleccionar').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const mangaId = e.currentTarget.dataset.mangaId;
+                sistema.seleccionarManga(mangaId);
             });
+        });
+    }
+    
+    mostrarMazos(mangaId) {
+        const manga = vocabulario.obtenerManga(mangaId);
+        if (!manga) return;
+        
+        // Actualizar título
+        this.elementos.titulos.mangaActual.textContent = manga.nombre;
+        
+        // Cargar mazos del manga
+        const mazos = vocabulario.obtenerMazos(mangaId);
+        this.elementos.listas.mazos.innerHTML = '';
+        
+        mazos.forEach(mazo => {
+            const card = this.crearElemento('div', ['card']);
             
-            // Agregar event listeners a los mazos
-            mangaCard.querySelectorAll('.mazo-item').forEach(item => {
-                item.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const mangaId = parseInt(item.dataset.manga);
-                    const mazoId = parseInt(item.dataset.mazo);
-                    console.log(`Iniciando quiz: Manga ${mangaId}, Mazo ${mazoId}`);
-                    this.iniciarQuiz(mangaId, mazoId);
-                });
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="card-icono" style="background: ${manga.color}20; color: ${manga.color}">
+                        <i class="fas fa-cards"></i>
+                    </div>
+                    <h3 class="card-titulo">${mazo.nombre}</h3>
+                </div>
+                <p class="card-descripcion">${mazo.descripcion}</p>
+                <div class="card-info">
+                    <span class="badge">${mazo.palabras.length} palabras</span>
+                    <button class="btn btn-primary btn-practicar" data-manga-id="${mangaId}" data-mazo-id="${mazo.id}">
+                        Practicar
+                    </button>
+                </div>
+            `;
+            
+            this.elementos.listas.mazos.appendChild(card);
+        });
+        
+        // Agregar event listeners a los botones de práctica
+        document.querySelectorAll('.btn-practicar').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const mangaId = e.currentTarget.dataset.mangaId;
+                const mazoId = e.currentTarget.dataset.mazoId;
+                sistema.seleccionarMazo({ mangaId, mazoId });
             });
         });
         
-        // Si no hay mangas, mostrar mensaje
-        if (window.VOCABULARIO.mangas.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-book" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 20px;"></i>
-                    <h3>No hay mangas disponibles</h3>
-                    <p>Agrega mangas en el archivo vocabulario.js</p>
-                </div>
-            `;
-        }
+        // Actualizar mazo difícil
+        this.actualizarMazoDificil(mangaId);
         
-        console.log("Mangas cargados exitosamente");
+        // Mostrar pantalla de mazos
+        this.mostrarPantalla('mazos');
     }
-
-    mostrarManga(mangaId) {
-        console.log(`Mostrando detalles del manga ${mangaId}`);
-        // Implementar vista detallada del manga si es necesario
-    }
-
-    // ========== SISTEMA DE QUIZ ==========
-    iniciarQuiz(mangaId, mazoId) {
-        console.log(`Iniciando quiz: manga ${mangaId}, mazo ${mazoId}`);
+    
+    actualizarMazoDificil(mangaId) {
+        const palabrasDificiles = sistema.obtenerPalabrasDificilesPorManga(mangaId);
+        const btnPracticar = this.elementos.botones.practicarDificiles;
         
-        if (!window.VOCABULARIO) {
-            console.error("VOCABULARIO no disponible");
-            return;
-        }
-        
-        const manga = window.VOCABULARIO.mangas.find(m => m.id === mangaId);
-        if (!manga) {
-            console.error(`Manga ${mangaId} no encontrado`);
-            return;
-        }
-        
-        const mazo = manga.mazos[mazoId];
-        if (!mazo) {
-            console.error(`Mazo ${mazoId} no encontrado en manga ${mangaId}`);
-            return;
-        }
-        
-        this.mangaActual = manga;
-        this.mazoActual = mazo;
-        this.indicePalabra = 0;
-        this.palabrasFalladas = 0;
-        this.palabrasAcertadas = 0;
-        this.palabrasMarcadasDificiles = [];
-        this.quizActivo = true;
-        
-        console.log(`Quiz iniciado: ${manga.nombre} - ${mazo.nombre}`);
-        
-        // Actualizar UI del quiz
-        const quizManga = document.getElementById('quiz-manga');
-        const quizMazo = document.getElementById('quiz-mazo');
-        
-        if (quizManga) quizManga.textContent = manga.nombre;
-        if (quizMazo) quizMazo.textContent = mazo.nombre;
-        
-        this.actualizarProgresoQuiz();
-        
-        // Mostrar primera palabra
-        this.mostrarSiguientePalabra();
-        
-        // Cambiar a sección de quiz
-        this.mostrarSeccion('quiz');
-    }
-
-    iniciarQuizDificiles() {
-        console.log("Iniciando quiz de palabras difíciles");
-        
-        if (this.sistemaJuego.crearMazoDificilesTemporal()) {
-            const mazoDificiles = {
-                id: -1,
-                nombre: "Palabras Difíciles",
-                palabras: this.sistemaJuego.mazoDificilesTemporal
-            };
-            
-            this.mangaActual = { id: -1, nombre: "Especial" };
-            this.mazoActual = mazoDificiles;
-            this.indicePalabra = 0;
-            this.palabrasFalladas = 0;
-            this.palabrasAcertadas = 0;
-            this.palabrasMarcadasDificiles = [];
-            this.quizActivo = true;
-            
-            // Actualizar UI del quiz
-            const quizManga = document.getElementById('quiz-manga');
-            const quizMazo = document.getElementById('quiz-mazo');
-            
-            if (quizManga) quizManga.textContent = "Especial";
-            if (quizMazo) quizMazo.textContent = "Palabras Difíciles";
-            
-            this.actualizarProgresoQuiz();
-            
-            // Mostrar primera palabra
-            this.mostrarSiguientePalabra();
-            
-            // Cambiar a sección de quiz
-            this.mostrarSeccion('quiz');
+        if (palabrasDificiles.length > 0) {
+            btnPracticar.disabled = false;
+            btnPracticar.innerHTML = `Practicar (${palabrasDificiles.length})`;
         } else {
-            this.mostrarNotificacion("No hay palabras difíciles para estudiar", "warning");
+            btnPracticar.disabled = true;
+            btnPracticar.textContent = 'Practicar';
         }
     }
-
-    mostrarSiguientePalabra() {
-        if (!this.mazoActual || !this.mazoActual.palabras || this.indicePalabra >= this.mazoActual.palabras.length) {
-            console.log("Quiz completado o sin palabras");
-            this.finalizarQuiz();
+    
+    actualizarContadorDificiles() {
+        const total = sistema.obtenerPalabrasDificiles().length;
+        this.elementos.titulos.contadorDificiles.textContent = `${total} ${total === 1 ? 'palabra' : 'palabras'}`;
+    }
+    
+    // ===== QUIZ =====
+    async iniciarQuiz(mazoInfo) {
+        const { mangaId, mazoId } = mazoInfo;
+        const mazo = vocabulario.obtenerMazo(mangaId, mazoId);
+        
+        if (!mazo || !mazo.palabras.length) {
+            console.error('Mazo no encontrado o vacío');
             return;
         }
         
-        this.palabraActual = this.mazoActual.palabras[this.indicePalabra];
-        console.log(`Mostrando palabra ${this.indicePalabra + 1}: ${this.palabraActual.japones}`);
+        // Mezclar palabras
+        const palabrasMezcladas = [...mazo.palabras].sort(() => Math.random() - 0.5);
         
-        // Actualizar palabra en pantalla
-        const japonesElement = document.getElementById('japanese-word');
-        const romajiElement = document.getElementById('romaji-display');
+        // Configurar información del mazo actual
+        this.mazoActual = {
+            mangaId,
+            mazoId,
+            mazoNombre: mazo.nombre,
+            mangaNombre: vocabulario.obtenerManga(mangaId).nombre
+        };
         
-        if (japonesElement) japonesElement.textContent = this.palabraActual.japones;
-        if (romajiElement) romajiElement.textContent = "";
+        // Iniciar quiz en el sistema
+        sistema.iniciarQuiz(palabrasMezcladas);
         
-        // Generar opciones
-        this.opcionesActuales = this.sistemaJuego.generarOpcionesAleatorias(this.palabraActual.significado);
-        console.log("Opciones generadas:", this.opcionesActuales);
+        // Mostrar pantalla de quiz
+        this.mostrarPantalla('quiz');
+    }
+    
+    iniciarMazoDificil() {
+        const palabrasDificiles = sistema.crearMazoDificil();
         
-        // Actualizar botones de opciones
-        document.querySelectorAll('.option-btn').forEach((btn, index) => {
-            if (index < this.opcionesActuales.length) {
-                btn.textContent = this.opcionesActuales[index];
-                btn.className = 'option-btn';
-                btn.disabled = false;
-            }
-        });
-        
-        // Actualizar botón de palabra difícil
-        const esDificil = this.palabrasMarcadasDificiles.includes(this.indicePalabra);
-        const btnDificil = document.getElementById('btn-marcar-dificil');
-        if (btnDificil) {
-            btnDificil.className = esDificil ? 'btn-difficult active' : 'btn-difficult';
-            btnDificil.innerHTML = esDificil ?
-                '<i class="fas fa-fire"></i> Marcada como difícil' :
-                '<i class="fas fa-fire"></i> Marcar como difícil';
+        if (palabrasDificiles.length === 0) {
+            alert('No hay palabras marcadas como difíciles');
+            return;
         }
+        
+        // Configurar información del mazo difícil
+        this.mazoActual = {
+            mangaId: 'dificiles',
+            mazoId: 'dificil',
+            mazoNombre: 'Palabras Difíciles',
+            mangaNombre: 'Repaso General'
+        };
+        
+        // Iniciar quiz con palabras difíciles
+        sistema.iniciarQuiz(palabrasDificiles);
+        
+        // Mostrar pantalla de quiz
+        this.mostrarPantalla('quiz');
+    }
+    
+    mostrarPregunta(datos) {
+        const { palabra, opciones, indice, total } = datos;
         
         // Actualizar contador
-        const difficultCount = document.getElementById('difficult-count');
-        if (difficultCount) {
-            difficultCount.textContent = this.palabrasMarcadasDificiles.length;
-        }
+        this.elementos.quiz.contadorPregunta.textContent = `${indice + 1}/${total}`;
+        
+        // Actualizar barra de progreso
+        const porcentaje = ((indice + 1) / total) * 100;
+        this.elementos.quiz.barraProgreso.style.width = `${porcentaje}%`;
+        
+        // Mostrar palabra japonesa
+        this.elementos.quiz.palabraJapones.textContent = palabra.japones;
+        this.elementos.quiz.palabraRomaji.textContent = palabra.romaji;
+        
+        // Limpiar opciones anteriores
+        this.elementos.quiz.opcionesGrid.innerHTML = '';
+        
+        // Crear botones de opciones
+        opciones.forEach(opcion => {
+            const boton = this.crearElemento('button', ['opcion-btn']);
+            boton.textContent = opcion.significado;
+            boton.dataset.opcionId = opcion.id;
+            
+            boton.addEventListener('click', () => {
+                this.seleccionarOpcion(opcion.id);
+            });
+            
+            this.elementos.quiz.opcionesGrid.appendChild(boton);
+        });
+        
+        // Ocultar feedback
+        this.elementos.quiz.feedbackArea.classList.add('oculto');
+        
+        // Resetear botón de marcar como difícil
+        this.elementos.quiz.btnMarcarDificil.innerHTML = '<i class="far fa-flag"></i>';
+        this.elementos.quiz.btnMarcarDificil.classList.remove('marcada');
+        
+        // Guardar palabra actual para marcar como difícil
+        this.palabraActual = {
+            ...palabra,
+            mangaId: this.mazoActual.mangaId,
+            mazoId: this.mazoActual.mazoId,
+            mangaNombre: this.mazoActual.mangaNombre
+        };
     }
-
-    seleccionarOpcion(opcionIndex) {
-        if (!this.quizActivo || !this.palabraActual) {
-            console.log("Quiz no activo o palabra no disponible");
-            return;
-        }
-        
-        console.log(`Opción seleccionada: ${opcionIndex}`);
-        
-        const opcionSeleccionada = this.opcionesActuales[opcionIndex];
-        const esCorrecta = opcionSeleccionada === this.palabraActual.significado;
-        
-        console.log(`¿Correcta? ${esCorrecta} (Seleccionada: "${opcionSeleccionada}", Correcta: "${this.palabraActual.significado}")`);
-        
-        // Mostrar romaji
-        const romajiElement = document.getElementById('romaji-display');
-        if (romajiElement) {
-            romajiElement.textContent = this.palabraActual.romaji;
-        }
-        
-        // Marcar opciones correctas/incorrectas
-        document.querySelectorAll('.option-btn').forEach((btn, index) => {
-            if (this.opcionesActuales[index] === this.palabraActual.significado) {
-                btn.classList.add('correct');
-            } else if (index === opcionIndex && !esCorrecta) {
-                btn.classList.add('incorrect');
-            }
+    
+    seleccionarOpcion(opcionId) {
+        // Deshabilitar todos los botones
+        document.querySelectorAll('.opcion-btn').forEach(btn => {
             btn.disabled = true;
         });
         
-        // Dar EXP a la novia seleccionada si hay sistemaRPG
-        if (esCorrecta && this.sistemaRPG && this.sistemaRPG.noviaActual !== null) {
-            this.sistemaRPG.agregarExp(this.sistemaRPG.noviaActual, 10, "Palabra correcta");
-            this.palabrasAcertadas++;
-        } else if (!esCorrecta) {
-            this.palabrasFalladas++;
-        }
+        // Verificar respuesta
+        const respuesta = sistema.verificarRespuesta(parseInt(opcionId));
         
-        // Avanzar automáticamente después de un tiempo
-        setTimeout(() => {
-            if (esCorrecta || this.mazoActual.id === -1) {
-                // Para mazo normal: solo avanza si acierta
-                // Para mazo difícil: siempre avanza
-                this.indicePalabra++;
-                this.actualizarProgresoQuiz();
-                this.mostrarSiguientePalabra();
-            } else {
-                console.log("Falló, permanece en la misma palabra");
-                // Si falla en mazo normal, se queda en la misma palabra
-                // Solo re-habilitar los botones
-                document.querySelectorAll('.option-btn').forEach(btn => {
-                    btn.disabled = false;
-                    btn.classList.remove('correct', 'incorrect');
-                });
-            }
-        }, 1500);
-    }
-
-    marcarPalabraDificil() {
-        if (!this.quizActivo || !this.palabraActual || !this.mangaActual || !this.mazoActual) {
-            console.log("No se puede marcar como difícil: quiz no activo");
-            return;
-        }
-        
-        const index = this.indicePalabra;
-        console.log(`Marcando palabra ${index} como difícil`);
-        
-        if (this.palabrasMarcadasDificiles.includes(index)) {
-            // Desmarcar
-            this.palabrasMarcadasDificiles = this.palabrasMarcadasDificiles.filter(i => i !== index);
-            console.log("Palabra desmarcada como difícil");
+        // Marcar botones correctos/incorrectos
+        document.querySelectorAll('.opcion-btn').forEach(btn => {
+            const id = parseInt(btn.dataset.opcionId);
+            const esCorrecta = sistema.estado.progresoMazo.opciones.find(op => op.id === id)?.esCorrecta;
             
-            const btnDificil = document.getElementById('btn-marcar-dificil');
-            if (btnDificil) {
-                btnDificil.className = 'btn-difficult';
-                btnDificil.innerHTML = '<i class="fas fa-fire"></i> Marcar como difícil';
+            if (esCorrecta) {
+                btn.classList.add('correcta');
+            } else if (id === opcionId && !respuesta.esCorrecta) {
+                btn.classList.add('incorrecta');
             }
-        } else {
-            // Marcar
-            this.palabrasMarcadasDificiles.push(index);
-            console.log("Palabra marcada como difícil");
-            
-            const btnDificil = document.getElementById('btn-marcar-dificil');
-            if (btnDificil) {
-                btnDificil.className = 'btn-difficult active';
-                btnDificil.innerHTML = '<i class="fas fa-fire"></i> Marcada como difícil';
-            }
-            
-            // Guardar en sistema
-            if (this.mazoActual.id !== -1) { // No guardar si es mazo de difíciles
-                this.sistemaJuego.marcarPalabraDificil(
-                    this.palabraActual,
-                    this.mangaActual.id,
-                    this.mazoActual.id
-                );
-            }
-        }
-        
-        // Actualizar contador
-        const difficultCount = document.getElementById('difficult-count');
-        if (difficultCount) {
-            difficultCount.textContent = this.palabrasMarcadasDificiles.length;
-        }
+        });
     }
-
-    actualizarProgresoQuiz() {
-        const totalPalabras = this.mazoActual ? (this.mazoActual.palabras?.length || 10) : 10;
-        const porcentaje = (this.indicePalabra / totalPalabras) * 100;
+    
+    mostrarFeedback(respuesta) {
+        const { palabra, opcionSeleccionada, esCorrecta } = respuesta;
         
-        const progressBar = document.getElementById('quiz-progress-bar');
-        const progressText = document.getElementById('quiz-progress-text');
+        // Crear contenido del feedback
+        let feedbackHTML = '';
         
-        if (progressBar) {
-            progressBar.style.width = `${porcentaje}%`;
-        }
-        
-        if (progressText) {
-            progressText.textContent = `${this.indicePalabra}/${totalPalabras}`;
-        }
-        
-        console.log(`Progreso: ${this.indicePalabra}/${totalPalabras} (${porcentaje}%)`);
-    }
-
-    finalizarQuiz() {
-        console.log("Finalizando quiz...");
-        this.quizActivo = false;
-        
-        const totalPalabras = this.mazoActual ? (this.mazoActual.palabras?.length || 10) : 10;
-        const porcentajeCompletado = totalPalabras > 0 ? (this.palabrasAcertadas / totalPalabras) * 100 : 0;
-        
-        console.log(`Resultado: ${this.palabrasAcertadas}/${totalPalabras} = ${porcentajeCompletado}%`);
-        
-        // Calcular recompensa
-        const esMazoDificil = this.mazoActual && this.mazoActual.id === -1;
-        const recompensa = this.sistemaJuego.calcularRecompensaMazo(porcentajeCompletado, esMazoDificil);
-        
-        // Mostrar resultados
-        const feedback = document.getElementById('quiz-feedback');
-        if (feedback) {
-            feedback.innerHTML = `
-                <div class="quiz-result">
-                    <h3>¡Quiz Completado!</h3>
-                    <p>Aciertos: ${this.palabrasAcertadas}/${totalPalabras} (${porcentajeCompletado.toFixed(1)}%)</p>
-                    <p>Recompensa: ${recompensa.toFixed(2)} soles ${esMazoDificil ? '(x3 bonus)' : ''}</p>
-                    ${porcentajeCompletado === 100 ? 
-                        '<p class="perfect">¡Perfecto! +50 EXP extra</p>' : 
-                        ''}
+        if (esCorrecta) {
+            feedbackHTML = `
+                <div class="feedback-correcto">
+                    <div class="feedback-icono">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h3 class="feedback-titulo">¡Correcto!</h3>
+                    <div class="feedback-datos">
+                        <div class="feedback-dato">
+                            <span>Japonés:</span>
+                            <strong>${palabra.japones}</strong>
+                        </div>
+                        <div class="feedback-dato">
+                            <span>Romaji:</span>
+                            <strong>${palabra.romaji}</strong>
+                        </div>
+                        <div class="feedback-dato">
+                            <span>Lectura:</span>
+                            <strong>${palabra.lectura}</strong>
+                        </div>
+                        <div class="feedback-dato">
+                            <span>Significado:</span>
+                            <strong>${palabra.significado}</strong>
+                        </div>
+                    </div>
                 </div>
             `;
+        } else {
+            const opcionCorrecta = sistema.estado.progresoMazo.opciones.find(op => op.esCorrecta);
             
-            // Dar EXP extra si fue perfecto
-            if (porcentajeCompletado === 100 && this.sistemaRPG && this.sistemaRPG.noviaActual !== null) {
-                this.sistemaRPG.agregarExp(this.sistemaRPG.noviaActual, 50, "Mazo perfecto");
-            }
-            
-            // Procesar recompensa del mazo
-            if (this.mazoActual && this.mazoActual.id !== -1 && this.mangaActual) {
-                this.sistemaJuego.procesarResultadoMazo(
-                    this.mazoActual.id,
-                    this.mangaActual.id,
-                    porcentajeCompletado,
-                    this.palabrasFalladas
-                );
-            } else if (esMazoDificil) {
-                // Recompensa especial para mazo de difíciles
-                this.sistemaJuego.agregarDinero(recompensa, "Mazo de palabras difíciles");
-                
-                // Limpiar palabras usadas
-                this.palabrasMarcadasDificiles.forEach(index => {
-                    const palabra = this.mazoActual.palabras[index];
-                    if (palabra && palabra.id) {
-                        this.sistemaJuego.eliminarPalabraDificil(palabra.id);
-                    }
-                });
-            }
-            
-            // Actualizar UI
-            this.sistemaJuego.actualizarUI();
-            this.cargarPalabrasDificiles();
+            feedbackHTML = `
+                <div class="feedback-incorrecto">
+                    <div class="feedback-icono">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <h3 class="feedback-titulo">¡Incorrecto!</h3>
+                    <p>Tu respuesta: <strong>${opcionSeleccionada}</strong></p>
+                    <p>Respuesta correcta: <strong>${opcionCorrecta?.significado || palabra.significado}</strong></p>
+                    <div class="feedback-datos">
+                        <div class="feedback-dato">
+                            <span>Japonés:</span>
+                            <strong>${palabra.japones}</strong>
+                        </div>
+                        <div class="feedback-dato">
+                            <span>Romaji:</span>
+                            <strong>${palabra.romaji}</strong>
+                        </div>
+                        <div class="feedback-dato">
+                            <span>Lectura:</span>
+                            <strong>${palabra.lectura}</strong>
+                        </div>
+                        <div class="feedback-dato">
+                            <span>Significado:</span>
+                            <strong>${palabra.significado}</strong>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
         
-        // Volver automáticamente después de 3 segundos
+        // Actualizar contenido y mostrar feedback
+        document.querySelector('.feedback-content').innerHTML = feedbackHTML;
+        this.elementos.quiz.feedbackArea.classList.remove('oculto');
+        
+        // Si la respuesta fue correcta, avanzar automáticamente después de 1.5 segundos
+        if (esCorrecta) {
+            setTimeout(() => {
+                this.siguientePregunta();
+            }, 1500);
+        }
+    }
+    
+    siguientePregunta() {
+        const siguiente = sistema.avanzarPregunta();
+        
+        if (!siguiente) {
+            // Quiz terminado
+            return;
+        }
+    }
+    
+    marcarPalabraDificil() {
+        if (!this.palabraActual) return;
+        
+        const agregada = sistema.agregarPalabraDificil(this.palabraActual);
+        
+        if (agregada) {
+            this.elementos.quiz.btnMarcarDificil.innerHTML = '<i class="fas fa-flag"></i> Marcada';
+            this.elementos.quiz.btnMarcarDificil.classList.add('marcada');
+            
+            // Mostrar mensaje de confirmación
+            this.mostrarNotificacion('Palabra marcada como difícil');
+        }
+    }
+    
+    limpiarQuiz() {
+        this.elementos.quiz.palabraJapones.textContent = '';
+        this.elementos.quiz.palabraRomaji.textContent = '';
+        this.elementos.quiz.opcionesGrid.innerHTML = '';
+        this.elementos.quiz.feedbackArea.classList.add('oculto');
+    }
+    
+    // ===== RESULTADOS =====
+    mostrarResultados(resultados) {
+        const { correctas, incorrectas, total, porcentaje } = resultados;
+        
+        // Actualizar estadísticas
+        this.elementos.resultados.correctasCount.textContent = correctas;
+        this.elementos.resultados.incorrectasCount.textContent = incorrectas;
+        this.elementos.resultados.totalCount.textContent = total;
+        
+        // Configurar mensaje según el desempeño
+        let mensaje, detalle;
+        
+        if (porcentaje >= 90) {
+            mensaje = '¡Excelente trabajo!';
+            detalle = 'Dominas completamente este mazo';
+        } else if (porcentaje >= 70) {
+            mensaje = '¡Muy bien!';
+            detalle = 'Buen dominio del vocabulario';
+        } else if (porcentaje >= 50) {
+            mensaje = 'Buen esfuerzo';
+            detalle = 'Sigue practicando para mejorar';
+        } else {
+            mensaje = 'Sigue practicando';
+            detalle = 'Revisa las palabras y vuelve a intentarlo';
+        }
+        
+        this.elementos.resultados.mensajeResultado.textContent = mensaje;
+        this.elementos.resultados.detalleResultado.textContent = detalle;
+        
+        // Mostrar palabras difíciles si hay
+        const palabrasDificiles = sistema.obtenerPalabrasDificiles();
+        if (palabrasDificiles.length > 0 && this.mazoActual.mangaId !== 'dificiles') {
+            this.mostrarPalabrasDificiles(palabrasDificiles);
+            this.elementos.resultados.palabrasDificilesSection.classList.remove('oculto');
+        } else {
+            this.elementos.resultados.palabrasDificilesSection.classList.add('oculto');
+        }
+        
+        // Mostrar pantalla de resultados
+        this.mostrarPantalla('resultados');
+    }
+    
+    mostrarPalabrasDificiles(palabras) {
+        const lista = this.elementos.resultados.palabrasDificiles;
+        lista.innerHTML = '';
+        
+        palabras.slice(-5).forEach(palabra => { // Mostrar solo las 5 más recientes
+            const item = this.crearElemento('div', ['item-dificil']);
+            item.innerHTML = `
+                <div>
+                    <strong>${palabra.japones}</strong>
+                    <div style="font-size: 0.875rem; color: var(--color-text-secondary)">
+                        ${palabra.mangaNombre}
+                    </div>
+                </div>
+                <span>${palabra.significado}</span>
+            `;
+            lista.appendChild(item);
+        });
+    }
+    
+    repetirMazo() {
+        sistema.reiniciarMazo();
+        this.mostrarPantalla('quiz');
+    }
+    
+    // ===== UTILIDADES =====
+    crearElemento(tag, clases = []) {
+        const elemento = document.createElement(tag);
+        elemento.classList.add(...clases);
+        return elemento;
+    }
+    
+    mostrarNotificacion(mensaje, tipo = 'info') {
+        // Crear notificación temporal
+        const notificacion = this.crearElemento('div', ['notificacion', `notificacion-${tipo}`]);
+        notificacion.textContent = mensaje;
+        notificacion.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-lg);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        `;
+        
+        document.body.appendChild(notificacion);
+        
+        // Remover después de 3 segundos
         setTimeout(() => {
-            if (this.mazoActual && this.mazoActual.id === -1) {
-                this.mostrarSeccion('dificiles');
-            } else {
-                this.volverAMangas();
-            }
+            notificacion.style.animation = 'slideOut 0.3s ease forwards';
+            setTimeout(() => {
+                if (notificacion.parentNode) {
+                    notificacion.parentNode.removeChild(notificacion);
+                }
+            }, 300);
         }, 3000);
     }
-
-    // ========== NAVEGACIÓN ==========
-    mostrarSeccion(seccion) {
-        console.log(`Mostrando sección: ${seccion}`);
-        
-        // Ocultar todas las secciones
-        document.querySelectorAll('.content-section').forEach(s => {
-            s.classList.remove('active');
-        });
-        
-        // Mostrar sección seleccionada
-        const seccionElement = document.getElementById(`${seccion}-section`);
-        if (seccionElement) {
-            seccionElement.classList.add('active');
-            console.log(`Sección ${seccion} mostrada`);
-        } else {
-            console.error(`No se encontró la sección: ${seccion}-section`);
-        }
-        
-        // Actualizar botones de navegación
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        
-        const btnSeccion = document.getElementById(`btn-${seccion}`);
-        if (btnSeccion) {
-            btnSeccion.classList.add('active');
-        }
-        
-        // Actualizar contenido específico de la sección
-        switch(seccion) {
-            case 'novias':
-                if (this.sistemaRPG) {
-                    this.sistemaRPG.actualizarListaNovias();
-                    this.sistemaRPG.mostrarDetallesNovia(this.sistemaRPG.noviaActual || 0);
-                }
-                break;
-            case 'dificiles':
-                this.cargarPalabrasDificiles();
-                break;
-            case 'vocabulario':
-                this.cargarMangas();
-                break;
-        }
-    }
-
-    volverAMangas() {
-        console.log("Volviendo a mangas");
-        this.mostrarSeccion('vocabulario');
-        
-        // Limpiar feedback del quiz
-        const feedback = document.getElementById('quiz-feedback');
-        if (feedback) {
-            feedback.innerHTML = '';
-        }
-        
-        // Limpiar mazo temporal de difíciles si existe
-        if (this.mazoActual && this.mazoActual.id === -1) {
-            this.sistemaJuego.mazoDificilesTemporal = [];
-        }
-    }
-
-    limpiarPalabrasDificiles() {
-        if (confirm("¿Estás seguro de que quieres eliminar todas las palabras difíciles?")) {
-            console.log("Limpiando palabras difíciles");
-            this.sistemaJuego.limpiarPalabrasDificiles();
-            this.cargarPalabrasDificiles();
-        }
-    }
-
-    // ========== PALABRAS DIFÍCILES ==========
-    cargarPalabrasDificiles() {
-        const container = document.getElementById('dificiles-words');
-        if (!container) {
-            console.error("No se encontró el contenedor de palabras difíciles");
-            return;
-        }
-        
-        const palabras = this.sistemaJuego.palabrasDificiles || [];
-        console.log(`Cargando ${palabras.length} palabras difíciles`);
-        
-        if (palabras.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-fire" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 20px;"></i>
-                    <h3>No hay palabras difíciles</h3>
-                    <p>Marca palabras como difíciles durante los quizzes para verlas aquí</p>
-                </div>
-            `;
-            return;
-        }
-        
-        container.innerHTML = palabras.map((palabra, index) => `
-            <div class="dificil-word-item">
-                <div>
-                    <div class="dificil-word-jp">${palabra.japones || 'Sin palabra'}</div>
-                    <div class="dificil-word-romaji">${palabra.romaji || ''}</div>
-                    <div class="dificil-word-meaning">${palabra.significado || ''}</div>
-                    <small>${palabra.mangaId !== undefined ? `Manga ${palabra.mangaId + 1}` : 'Origen desconocido'}</small>
-                </div>
-                <div class="dificil-word-stats">
-                    <span class="dificil-count">Fallada ${palabra.vecesFallada || 1} veces</span>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    // ========== NOTIFICACIONES ==========
-    mostrarNotificacion(mensaje, tipo = "info") {
-        if (this.sistemaJuego && this.sistemaJuego.mostrarNotificacion) {
-            this.sistemaJuego.mostrarNotificacion(mensaje, tipo);
-        } else {
-            console.log(`[${tipo.toUpperCase()}] ${mensaje}`);
-        }
-    }
 }
 
-// Función para inicializar todo cuando la página cargue
-function inicializarAplicacion() {
-    console.log("=== INICIALIZANDO APLICACIÓN ===");
-    
-    // Verificar que los archivos necesarios estén cargados
-    if (!window.VOCABULARIO) {
-        console.error("ERROR: vocabulario.js no se cargó correctamente");
-        alert("Error: No se pudo cargar el vocabulario. Recarga la página.");
-        return;
-    }
-    
-    if (!window.CONTENIDO) {
-        console.warn("Advertencia: contenido.js no se cargó");
-    }
-    
-    // Inicializar sistemas
-    if (!window.sistemaJuego) {
-        window.sistemaJuego = new SistemaJuego();
-        console.log("Sistema de juego inicializado");
-    }
-    
-    if (!window.sistemaRPG) {
-        window.sistemaRPG = new SistemaRPGNovias();
-        console.log("Sistema RPG inicializado");
-    }
-    
-    // Inicializar aplicación principal
-    window.app = new AplicacionPrincipal();
-    console.log("Aplicación principal inicializada");
-    
-    // Hacer funciones disponibles globalmente
-    window.obtenerFotoNovia = (nombre, nivel) => {
-        if (window.CONTENIDO?.fotos) {
-            const nombreLower = nombre.toLowerCase();
-            const fotos = window.CONTENIDO.fotos[nombreLower];
-            if (fotos && fotos.length > 0) {
-                let fotoSeleccionada = fotos[0];
-                for (const foto of fotos) {
-                    if (foto.nivel <= nivel) {
-                        fotoSeleccionada = foto;
-                    }
-                }
-                return fotoSeleccionada;
+// Inicializar la aplicación cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', () => {
+    // Añadir estilos para animaciones de notificación
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
             }
         }
-        return { url: '', descripcion: 'Sin imagen' };
-    };
-    
-    window.obtenerActividadesNovia = (nombre, nivel) => {
-        if (window.CONTENIDO?.actividades) {
-            const actividades = window.CONTENIDO.actividades[nombre.toLowerCase()];
-            return actividades ? actividades.filter(a => a.nivelRequerido <= nivel) : [];
-        }
-        return [];
-    };
-    
-    window.obtenerVideosIntimosNovia = (nombre, nivel) => {
-        if (window.CONTENIDO?.videosIntimos) {
-            const videos = window.CONTENIDO.videosIntimos[nombre.toLowerCase()];
-            return videos ? videos.filter(v => v.nivelRequerido <= nivel) : [];
-        }
-        return [];
-    };
-    
-    window.obtenerMensajeFallo = (nombre) => {
-        if (window.CONTENIDO?.mensajesFallo) {
-            const mensajes = window.CONTENIDO.mensajesFallo[nombre.toLowerCase()];
-            if (mensajes && mensajes.length > 0) {
-                return mensajes[Math.floor(Math.random() * mensajes.length)];
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
             }
         }
-        return `${nombre} no tiene ganas en este momento`;
-    };
+        
+        .opcion-btn.marcada {
+            background: var(--color-accent) !important;
+            border-color: var(--color-accent) !important;
+            color: white !important;
+        }
+    `;
+    document.head.appendChild(style);
     
-    console.log("=== APLICACIÓN LISTA ===");
-}
-
-// Inicializar cuando el DOM esté listo
-if (typeof window !== 'undefined') {
-    // Esperar a que todos los scripts se carguen
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', inicializarAplicacion);
-    } else {
-        // DOM ya cargado
-        setTimeout(inicializarAplicacion, 500);
-    }
-}
-
-// Exportar para desarrollo
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = AplicacionPrincipal;
-}
+    // Crear instancia de la aplicación
+    window.app = new Aplicacion();
+    
+    // Exponer vocabulario y sistema para depuración
+    window.vocabulario = vocabulario;
+    window.sistema = sistema;
+});
