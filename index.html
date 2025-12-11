@@ -3,164 +3,200 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aprendizaje Especializado</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Quiz de Vocabulario Japonés</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <!-- Encabezado simplificado -->
-        <header class="header">
-            <div class="logo-container">
-                <h1 class="logo">AprendeJaponés</h1>
-                <p class="slogan">Domina el idioma paso a paso</p>
+    <!-- Header compacto -->
+    <header class="header">
+        <div class="header-content">
+            <h1 class="titulo-principal">
+                <i class="fas fa-language"></i> Quiz Japonés
+            </h1>
+            <div class="saldo-container">
+                <i class="fas fa-coins"></i>
+                <span id="saldo-soles">0</span>
             </div>
-            <div class="quiz-score">
-                <div class="score-container">
-                    <i class="fas fa-trophy"></i>
-                    <span>Puntuación: <span id="score">0</span></span>
+        </div>
+    </header>
+
+    <!-- Menú Principal -->
+    <div class="menu-principal">
+        <div class="menu-header">
+            <h2>🎌 MENÚ PRINCIPAL</h2>
+        </div>
+        
+        <div class="menu-container">
+            <!-- Opción 1: Entrenamiento Especial -->
+            <div class="menu-card" id="menu-entrenamiento">
+                <div class="menu-img">
+                    <img id="img-entrenamiento" src="" alt="Entrenamiento">
                 </div>
+                <h3>🏋️ ENTRENAMIENTO ESPECIAL</h3>
+                <p>Ejercicios personalizados</p>
             </div>
-        </header>
 
-        <!-- Sección principal -->
-        <main class="main-content">
-            <!-- Sección de Quiz (ahora visible desde el inicio) -->
-            <section class="quiz-section" id="quiz-section">
-                <div class="quiz-header">
-                    <h2><i class="fas fa-brain"></i> QUIZ JAPONÉS</h2>
-                    <div class="quiz-info">
-                        <span class="quiz-counter">Pregunta <span id="current-question">1</span>/10</span>
-                        <span class="quiz-timer"><i class="fas fa-clock"></i> <span id="timer">30</span>s</span>
-                    </div>
+            <!-- Opción 2: Biblioteca de Mangas -->
+            <div class="menu-card" id="menu-biblioteca">
+                <div class="menu-img">
+                    <img id="img-biblioteca" src="" alt="Biblioteca">
                 </div>
-                
-                <div class="quiz-card">
-                    <div class="question-container">
-                        <h3 id="question-text">¿Cuál es el significado de esta palabra?</h3>
-                        <div class="word-display" id="word-display">勉強</div>
-                    </div>
-                    
-                    <div class="options-container" id="options-container">
-                        <!-- Las opciones se generarán dinámicamente con JS -->
-                    </div>
-                    
-                    <div class="quiz-feedback" id="quiz-feedback">
-                        <div class="feedback-content" id="feedback-content">
-                            Selecciona una respuesta para continuar
-                        </div>
-                    </div>
-                    
-                    <div class="quiz-controls">
-                        <button class="btn btn-secondary" id="skip-btn">
-                            <i class="fas fa-forward"></i> Saltar
-                        </button>
-                        <button class="btn btn-primary" id="next-btn" disabled>
-                            Siguiente <i class="fas fa-arrow-right"></i>
-                        </button>
-                    </div>
+                <h3>📚 BIBLIOTECA DE MANGAS</h3>
+                <p>Vocabulario organizado</p>
+            </div>
+
+            <!-- Opción 3: Estadísticas -->
+            <div class="menu-card" id="menu-estadisticas">
+                <div class="menu-img">
+                    <img id="img-estadisticas" src="" alt="Estadísticas">
                 </div>
-            </section>
+                <h3>📊 ESTADÍSTICAS</h3>
+                <p>Tu progreso detallado</p>
+            </div>
 
-            <!-- Sección de Entrenamiento Especial -->
-            <section class="especial-section">
-                <h2><i class="fas fa-star"></i> ENTRENAMIENTO ESPECIAL</h2>
-                <p class="section-subtitle">Mejora tus habilidades con estos modos de práctica</p>
-
-                <div class="card-container">
-                    <!-- CARD 1 - Palabras Falladas -->
-                    <div class="card" id="card-falladas">
-                        <div class="card-icon error-icon">
-                            <i class="fas fa-times-circle"></i>
-                        </div>
-                        <h3><i class="fas fa-fire"></i> PALABRAS FALLADAS</h3>
-                        <p>Revisa y practica tus errores</p>
-                        <div class="card-counter">12 palabras por revisar</div>
-                    </div>
-
-                    <!-- CARD 2 - RPG -->
-                    <div class="card" id="card-rpg">
-                        <div class="card-img-circle" id="rpg-image">
-                            <!-- Imagen cargada desde JS -->
-                        </div>
-                        <h3><i class="fas fa-heart"></i> Quintillizas Nakano RPG</h3>
-                        <p>5 hermanas + sistema único + decoración</p>
-                        <div class="card-counter">Nivel 8 - 75% completado</div>
-                    </div>
-
-                    <!-- CARD 3 - Kanji -->
-                    <div class="card" id="card-kanji">
-                        <div class="card-icon kanji-icon">
-                            <i class="fas fa-pen-nib"></i>
-                        </div>
-                        <h3><i class="fas fa-book"></i> KANJI DEL DÍA</h3>
-                        <p>Aprende un nuevo kanji cada día</p>
-                        <div class="card-counter" id="kanji-display">今日の漢字: 学</div>
-                    </div>
-
-                    <!-- CARD 4 - Gramática -->
-                    <div class="card" id="card-gramatica">
-                        <div class="card-icon grammar-icon">
-                            <i class="fas fa-language"></i>
-                        </div>
-                        <h3><i class="fas fa-clipboard-list"></i> GRAMÁTICA N3</h3>
-                        <p>Estructuras gramaticales del JLPT N3</p>
-                        <div class="card-counter">15 lecciones disponibles</div>
-                    </div>
+            <!-- Opción 4: Tienda -->
+            <div class="menu-card" id="menu-tienda">
+                <div class="menu-img">
+                    <img id="img-tienda" src="" alt="Tienda">
                 </div>
-            </section>
-
-            <!-- Sección de progreso -->
-            <section class="progress-section">
-                <h2><i class="fas fa-chart-line"></i> TU PROGRESO</h2>
-                <div class="progress-container">
-                    <div class="progress-card">
-                        <div class="progress-icon">
-                            <i class="fas fa-calendar-check"></i>
-                        </div>
-                        <h4>Racha Actual</h4>
-                        <div class="progress-value">7 días</div>
-                    </div>
-                    <div class="progress-card">
-                        <div class="progress-icon">
-                            <i class="fas fa-trophy"></i>
-                        </div>
-                        <h4>Palabras Dominadas</h4>
-                        <div class="progress-value">328</div>
-                    </div>
-                    <div class="progress-card">
-                        <div class="progress-icon">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <h4>Tiempo de Estudio</h4>
-                        <div class="progress-value">42h 15m</div>
-                    </div>
-                </div>
-            </section>
-        </main>
-
-        <!-- Navegación inferior -->
-        <nav class="bottom-nav">
-            <a href="#" class="nav-item active">
-                <i class="fas fa-home"></i>
-                <span>Inicio</span>
-            </a>
-            <a href="#" class="nav-item">
-                <i class="fas fa-book"></i>
-                <span>Lecciones</span>
-            </a>
-            <a href="#" class="nav-item">
-                <i class="fas fa-gamepad"></i>
-                <span>Juegos</span>
-            </a>
-            <a href="#" class="nav-item">
-                <i class="fas fa-user"></i>
-                <span>Perfil</span>
-            </a>
-        </nav>
+                <h3>🛒 TIENDA</h3>
+                <p>Compra con tus soles</p>
+            </div>
+        </div>
     </div>
 
-    <script src="imagenesvideos.js"></script>
-    <script src="quiz.js"></script>
+    <!-- Pantalla de Entrenamiento (oculta inicialmente) -->
+    <div id="pantalla-entrenamiento" class="pantalla-entrenamiento" style="display: none;">
+        <div class="entrenamiento-header">
+            <button class="btn-volver-menu">
+                <i class="fas fa-arrow-left"></i> Volver al Menú
+            </button>
+            <h2>📝 ENTRENAMIENTO ESPECIAL</h2>
+        </div>
+        
+        <div class="card-container">
+            <!-- CARD 1: Palabras Falladas -->
+            <div class="card card-azul" id="card-falladas">
+                <div class="card-icon">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <h3>🔥 PALABRAS FALLADAS</h3>
+                <p>Revisa y practica tus errores</p>
+                <div class="card-estadistica">
+                    <span id="contador-falladas">0 palabras</span>
+                </div>
+            </div>
+
+            <!-- CARD 2: Quintillizas RPG -->
+            <div class="card card-morado" id="card-quintillizas">
+                <div class="card-img-circle">
+                    <img id="img-quintillizas" src="" alt="Quintillizas Nakano">
+                </div>
+                <h3>💖 Quintillizas Nakano RPG</h3>
+                <p>5 hermanas + sistema único + decoración</p>
+                <div class="card-estadistica">
+                    <span>Próximamente</span>
+                </div>
+            </div>
+
+            <!-- CARD 3: Mazos Rápidos -->
+            <div class="card card-rojo" id="card-rapidos">
+                <div class="card-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h3>⚡ MAZOS RÁPIDOS</h3>
+                <p>10 palabras en 2 minutos</p>
+                <div class="card-estadistica">
+                    <span id="contador-rapidos">0 disponibles</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla de Biblioteca (oculta inicialmente) -->
+    <div id="pantalla-biblioteca" class="pantalla-biblioteca" style="display: none;">
+        <div class="biblioteca-header">
+            <button class="btn-volver-menu">
+                <i class="fas fa-arrow-left"></i> Volver al Menú
+            </button>
+            <h2>📚 BIBLIOTECA DE MANGAS</h2>
+        </div>
+        
+        <div class="biblioteca-container" id="lista-mangas">
+            <!-- Los mangas se cargan dinámicamente aquí -->
+        </div>
+    </div>
+
+    <!-- Pantalla del Manga (oculta inicialmente) -->
+    <div id="pantalla-manga" class="pantalla-manga" style="display: none;">
+        <div class="manga-header">
+            <button class="btn-volver-biblioteca">
+                <i class="fas fa-arrow-left"></i> Volver a Biblioteca
+            </button>
+            <h2 id="titulo-manga">MANGA</h2>
+        </div>
+        
+        <div class="manga-info" id="info-manga">
+            <!-- Información del manga -->
+        </div>
+        
+        <div class="manga-subtemas" id="lista-subtemas">
+            <!-- Subtemas del manga -->
+        </div>
+    </div>
+
+    <!-- Pantalla del Quiz (oculta inicialmente) -->
+    <section id="pantalla-quiz" class="pantalla-quiz" style="display: none;">
+        <div class="quiz-header">
+            <button id="btn-volver-mazo" class="btn-volver">
+                <i class="fas fa-arrow-left"></i> Volver
+            </button>
+            <div class="quiz-progreso">
+                <span id="pregunta-actual">1</span> / <span id="total-preguntas">10</span>
+            </div>
+            <div class="quiz-timer">
+                <i class="fas fa-clock"></i> <span id="tiempo">0s</span>
+            </div>
+        </div>
+
+        <div class="quiz-container">
+            <div class="palabra-central" id="palabra-central">
+                Cargando...
+            </div>
+            
+            <div class="romaji-display" id="romaji-display"></div>
+
+            <div class="opciones-grid">
+                <div class="opcion" data-index="0"></div>
+                <div class="opcion" data-index="1"></div>
+                <div class="opcion" data-index="2"></div>
+                <div class="opcion" data-index="3"></div>
+            </div>
+
+            <div class="quiz-feedback" id="quiz-feedback"></div>
+
+            <div class="quiz-controls">
+                <button id="btn-siguiente" class="btn-siguiente" disabled>
+                    Siguiente <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Notificación -->
+    <div id="notificacion" class="notificacion">
+        <div class="notificacion-content">
+            <i class="fas fa-gift"></i>
+            <span id="notificacion-texto"></span>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="imagenes.js"></script>
+    <script src="vocabulario.js"></script>
+    <script src="sistema.js"></script>
+    <script src="main.js"></script>
 </body>
 </html>
