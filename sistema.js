@@ -1,313 +1,366 @@
-// ============================================================================
-// SISTEMA DE ECONOMÍA
-// ============================================================================
+// Sistema completo del Quiz - CORREGIDO
+const Sistema = {
+    // Estado del sistema
+    estado: {
+        saldo: 0,
+        mangaActual: null,
+        mazoActual: null,
+        preguntaActual: 0,
+        respuestasCorrectas: 0,
+        respuestasIncorrectas: 0,
+        tiempoInicio: null,
+        tiempoTranscurrido: 0,
+        intervalo: null,
+        progreso: {} // Almacena progreso por mazo
+    },
 
-const sistemaEconomia = {
-    saldoTotal: 0,
-    transacciones: [],
-    
+    // Inicialización
     inicializar: function() {
-        const guardado = localStorage.getItem('sistemaEconomia');
-        if (guardado) {
-            const datos = JSON.parse(guardado);
-            this.saldoTotal = datos.saldoTotal || 0;
-            this.transacciones = datos.transacciones || [];
-        }
-        this.actualizarInterfaz();
+        this.cargarEstado();
+        this.inicializarTemporizador();
+        this.actualizarUI();
     },
-    
-    guardar: function() {
-        const datos = {
-            saldoTotal: this.saldoTotal,
-            transacciones: this.transacciones
-        };
-        localStorage.setItem('sistemaEconomia', JSON.stringify(datos));
-    },
-    
-    agregarDinero: function(cantidad, motivo) {
-        this.saldoTotal += cantidad;
+
+    // Cargar estado desde localStorage
+    cargarEstado: function() {
+        const estadoGuardado = localStorage.getItem('quizEstado');
+        const saldoGuardado = localStorage.getItem('quizSaldo');
+        const progresoGuardado = localStorage.getItem('quizProgreso');
         
-        // Registrar transacción
-        const transaccion = {
-            fecha: new Date().toLocaleString(),
-            cantidad: cantidad,
-            motivo: motivo,
-            tipo: 'ingreso'
-        };
-        
-        this.transacciones.unshift(transaccion);
-        
-        // Limitar historial a 50 transacciones
-        if (this.transacciones.length > 50) {
-            this.transacciones = this.transacciones.slice(0, 50);
+        if (estadoGuardado) {
+            const estadoParseado = JSON.parse(estadoGuardado);
+            this.estado = { ...this.estado, ...estadoParseado };
         }
         
-        this.guardar();
-        this.actualizarInterfaz();
+        if (saldoGuardado) {
+            this.estado.saldo = parseInt(saldoGuardado);
+        }
+        
+        if (progresoGuardado) {
+            this.estado.progreso = JSON.parse(progresoGuardado);
+        }
+    },
+
+    // Guardar estado en localStorage
+    guardarEstado: function() {
+        localStorage.setItem('quizEstado', JSON.stringify({
+            mangaActual: this.estado.mangaActual,
+            mazoActual: this.estado.mazoActual,
+            progreso: this.estado.progreso
+        }));
+        localStorage.setItem('quizSaldo', this.estado.saldo.toString());
+        localStorage.setItem('quizProgreso', JSON.stringify(this.estado.progreso));
+    },
+
+    // Gestión de dinero
+    agregarSoles: function(cantidad) {
+        this.estado.saldo += cantidad;
+        this.guardarEstado();
+        this.actualizarSaldoUI();
         
         // Mostrar notificación
-        this.mostrarNotificacion(`+${cantidad} S/.`, motivo);
+        this.mostrarNotificacion(`¡Ganaste ${cantidad} soles!`);
     },
-    
-    actualizarInterfaz: function() {
-        const saldoElement = document.getElementById('saldo-total');
-        if (saldoElement) {
-            saldoElement.textContent = `${this.saldoTotal.toFixed(2)} S/.`;
-        }
-        
-        const historialElement = document.getElementById('lista-transacciones');
-        if (historialElement) {
-            historialElement.innerHTML = '';
-            
-            this.transacciones.forEach(trans => {
-                const item = document.createElement('div');
-                item.className = 'item-transaccion';
-                item.innerHTML = `
-                    <div class="transaccion-info">
-                        <div class="transaccion-motivo">${trans.motivo}</div>
-                        <div class="transaccion-fecha">${trans.fecha}</div>
-                    </div>
-                    <div class="transaccion-cantidad ${trans.tipo}">+${trans.cantidad} S/.</div>
-                `;
-                historialElement.appendChild(item);
-            });
-        }
-    },
-    
-    mostrarNotificacion: function(mensaje, detalle) {
-        // Crear elemento de notificación
-        const notificacion = document.createElement('div');
-        notificacion.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background-color: #1a3a1a;
-            color: #a0e0a0;
-            padding: 15px 20px;
-            border-radius: 8px;
-            border: 1px solid #2a5a2a;
-            z-index: 1000;
-            animation: slideInRight 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            max-width: 300px;
-        `;
-        
-        notificacion.innerHTML = `
-            <div style="font-weight: bold; font-size: 1.2rem; margin-bottom: 5px;">${mensaje}</div>
-            <div style="font-size: 0.9rem; opacity: 0.8;">${detalle}</div>
-        `;
-        
-        document.body.appendChild(notificacion);
-        
-        // Remover después de 3 segundos
-        setTimeout(() => {
-            notificacion.style.animation = 'slideOutRight 0.3s ease';
-            setTimeout(() => {
-                if (notificacion.parentNode) {
-                    notificacion.parentNode.removeChild(notificacion);
-                }
-            }, 300);
-        }, 3000);
-    }
-};
 
-// ============================================================================
-// SISTEMA DE PALABRAS FALLADAS
-// ============================================================================
+    actualizarSaldoUI: function() {
+        const elementoSaldo = document.getElementById('saldo-soles');
+        if (elementoSaldo) {
+            elementoSaldo.textContent = this.estado.saldo;
+        }
+    },
 
-const sistemaPalabrasFalladas = {
-    palabrasFalladasHoy: [],
-    historialFalladas: [],
-    
-    inicializar: function() {
-        const hoy = new Date().toDateString();
-        const guardado = localStorage.getItem('sistemaPalabrasFalladas');
-        
-        if (guardado) {
-            const datos = JSON.parse(guardado);
-            this.historialFalladas = datos.historialFalladas || [];
-            
-            // Filtrar palabras falladas de hoy
-            this.palabrasFalladasHoy = this.historialFalladas.filter(item => 
-                new Date(item.fecha).toDateString() === hoy
-            );
+    // Gestión de progreso
+    obtenerProgresoMazo: function(mazoId) {
+        if (!this.estado.progreso[mazoId]) {
+            return 0;
         }
-        
-        this.actualizarInterfaz();
+        const totalPalabras = this.obtenerTotalPalabras(mazoId);
+        const completadas = this.estado.progreso[mazoId].palabrasCorrectas.length;
+        return totalPalabras > 0 ? Math.round((completadas / totalPalabras) * 100) : 0;
     },
-    
-    guardar: function() {
-        const datos = {
-            historialFalladas: this.historialFalladas
-        };
-        localStorage.setItem('sistemaPalabrasFalladas', JSON.stringify(datos));
+
+    obtenerTotalPalabras: function(mazoId) {
+        const mazo = this.obtenerMazoPorId(mazoId);
+        return mazo ? mazo.palabras.length : 0;
     },
-    
-    registrarPalabraFallada: function(palabra, respuestaDada, respuestaCorrecta, lectura, opciones) {
-        const registro = {
-            fecha: new Date().toISOString(),
-            palabra: palabra,
-            respuestaDada: respuestaDada,
-            respuestaCorrecta: respuestaCorrecta,
-            lectura: lectura,
-            opciones: opciones
-        };
-        
-        this.palabrasFalladasHoy.push(registro);
-        this.historialFalladas.push(registro);
-        
-        // Limitar historial a 500 registros
-        if (this.historialFalladas.length > 500) {
-            this.historialFalladas = this.historialFalladas.slice(-500);
+
+    registrarRespuesta: function(mazoId, palabraIndex, correcta) {
+        if (!this.estado.progreso[mazoId]) {
+            this.estado.progreso[mazoId] = {
+                palabrasCorrectas: [],
+                palabrasIncorrectas: [],
+                completado: false,
+                recompensaObtenida: false
+            };
         }
-        
-        this.guardar();
-        this.actualizarInterfaz();
-    },
-    
-    obtenerEstadisticas: function() {
-        const hoy = new Date().toDateString();
-        const falladasHoy = this.historialFalladas.filter(item => 
-            new Date(item.fecha).toDateString() === hoy
-        ).length;
-        
-        return {
-            hoy: falladasHoy,
-            total: this.historialFalladas.length,
-            ultimas24h: this.palabrasFalladasHoy.length
-        };
-    },
-    
-    actualizarInterfaz: function() {
-        const hoyElement = document.getElementById('falladas-hoy');
-        const totalElement = document.getElementById('falladas-total');
-        
-        if (hoyElement && totalElement) {
-            const stats = this.obtenerEstadisticas();
-            hoyElement.textContent = stats.hoy;
-            totalElement.textContent = stats.total;
-        }
-        
-        const listaElement = document.getElementById('lista-palabras-falladas');
-        if (listaElement) {
-            listaElement.innerHTML = '';
-            
-            // Mostrar solo las de hoy
-            const palabrasHoy = this.palabrasFalladasHoy.slice().reverse(); // Más recientes primero
-            
-            if (palabrasHoy.length === 0) {
-                listaElement.innerHTML = `
-                    <div style="text-align: center; padding: 40px 20px; color: #888;">
-                        <i class="fas fa-check-circle" style="font-size: 3rem; margin-bottom: 20px;"></i>
-                        <p>¡No has fallado ninguna palabra hoy!</p>
-                    </div>
-                `;
-                return;
+
+        if (correcta) {
+            if (!this.estado.progreso[mazoId].palabrasCorrectas.includes(palabraIndex)) {
+                this.estado.progreso[mazoId].palabrasCorrectas.push(palabraIndex);
             }
+            this.estado.respuestasCorrectas++;
+        } else {
+            if (!this.estado.progreso[mazoId].palabrasIncorrectas.includes(palabraIndex)) {
+                this.estado.progreso[mazoId].palabrasIncorrectas.push(palabraIndex);
+            }
+            this.estado.respuestasIncorrectas++;
+        }
+
+        // Verificar si se completó el mazo
+        this.verificarCompletadoMazo(mazoId);
+        
+        this.guardarEstado();
+    },
+
+    verificarCompletadoMazo: function(mazoId) {
+        const progreso = this.obtenerProgresoMazo(mazoId);
+        const mazoData = this.obtenerMazoPorId(mazoId);
+        
+        if (progreso === 100 && 
+            mazoData && 
+            this.estado.progreso[mazoId] && 
+            !this.estado.progreso[mazoId].recompensaObtenida) {
             
-            palabrasHoy.forEach((item, index) => {
-                const palabraDiv = document.createElement('div');
-                palabraDiv.className = 'palabra-fallada-item';
-                palabraDiv.innerHTML = `
-                    <div class="palabra-header">
-                        <span class="palabra-japones">${item.palabra}</span>
-                        <span class="palabra-lectura">(${item.lectura})</span>
-                    </div>
-                    <div class="palabra-datos">
-                        <div class="respuesta-incorrecta">
-                            <span class="label">Tu respuesta:</span>
-                            <span class="valor incorrecto">${item.respuestaDada}</span>
-                        </div>
-                        <div class="respuesta-correcta">
-                            <span class="label">Correcto:</span>
-                            <span class="valor correcto">${item.respuestaCorrecta}</span>
-                        </div>
-                    </div>
-                    <div class="palabra-fecha">
-                        ${new Date(item.fecha).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                    </div>
-                `;
-                listaElement.appendChild(palabraDiv);
-            });
+            this.estado.progreso[mazoId].recompensaObtenida = true;
+            this.estado.progreso[mazoId].completado = true;
+            this.agregarSoles(mazoData.recompensa);
+            
+            this.mostrarNotificacion(`¡Mazo completado al 100%! Ganaste ${mazoData.recompensa} soles`);
         }
     },
-    
-    practicarPalabrasFalladas: function() {
-        const palabras = this.palabrasFalladasHoy;
+
+    // Gestión del quiz
+    iniciarQuiz: function(mazoId) {
+        this.estado.mazoActual = mazoId;
+        this.estado.preguntaActual = 0;
+        this.estado.respuestasCorrectas = 0;
+        this.estado.respuestasIncorrectas = 0;
+        this.estado.tiempoInicio = Date.now();
+        this.estado.tiempoTranscurrido = 0;
         
-        if (palabras.length === 0) {
-            alert("No hay palabras falladas para practicar hoy.");
-            return;
-        }
-        
-        // Convertir palabras falladas al formato del quiz
-        mazoActual = palabras.map(item => ({
-            japones: item.palabra,
-            lectura: item.lectura,
-            opciones: item.opciones,
-            respuesta: item.opciones.indexOf(item.respuestaCorrecta)
-        }));
-        
-        // Reiniciar quiz
-        preguntaActual = 0;
-        respuestasCorrectas = 0;
-        respuestasIncorrectas = 0;
-        respuestaSeleccionada = null;
-        
-        // Mezclar preguntas
-        mezclarPreguntas();
-        
-        // Cambiar título del quiz
-        document.getElementById('contador-preguntas').innerHTML = 
-            `<span>PRÁCTICA ESPECIAL</span>`;
-        
-        // Ir al quiz
-        cambiarPantalla('pantalla-quiz');
-        mostrarPregunta();
+        this.iniciarTemporizador();
+        this.guardarEstado();
+        this.mostrarPregunta();
     },
-    
-    limpiarPalabrasFalladas: function() {
-        if (confirm("¿Estás seguro de limpiar todo el historial de palabras falladas?")) {
-            this.palabrasFalladasHoy = [];
-            this.historialFalladas = [];
-            this.guardar();
-            this.actualizarInterfaz();
+
+    obtenerPreguntaActual: function() {
+        const mazo = this.obtenerMazoActual();
+        if (mazo && mazo.palabras[this.estado.preguntaActual]) {
+            return mazo.palabras[this.estado.preguntaActual];
         }
+        return null;
+    },
+
+    obtenerMazoActual: function() {
+        return this.obtenerMazoPorId(this.estado.mazoActual);
+    },
+
+    obtenerMazoPorId: function(mazoId) {
+        for (const manga of vocabulario.temas) {
+            for (const subtema of manga.subtemas) {
+                for (const mazo of subtema.mazos) {
+                    if (mazo.id === mazoId) {
+                        return mazo;
+                    }
+                }
+            }
+        }
+        console.error("Mazo no encontrado:", mazoId);
+        return null;
+    },
+
+    responderPregunta: function(opcionIndex) {
+        const pregunta = this.obtenerPreguntaActual();
+        if (!pregunta) return false;
+
+        // CORRECCIÓN IMPORTANTE: Usar el índice de respuesta almacenado en data-index
+        // En la nueva UI, el data-index corresponde directamente a la posición en opciones
+        const seleccionada = document.querySelector(`.opcion[data-index="${opcionIndex}"]`);
+        const respuestaCorrectaIndex = pregunta.respuesta; // Este es el índice correcto (0-3)
+        
+        // Determinar si la respuesta es correcta
+        const opcionesMostradas = Array.from(document.querySelectorAll('.opcion'))
+            .map(op => op.textContent);
+        
+        // Encontrar qué opción está en la posición seleccionada
+        const respuestaUsuario = seleccionada.textContent;
+        const opcionesOriginales = pregunta.opciones;
+        
+        // La respuesta correcta está en pregunta.opciones[pregunta.respuesta]
+        const respuestaCorrectaTexto = opcionesOriginales[respuestaCorrectaIndex];
+        
+        const correcta = respuestaUsuario === respuestaCorrectaTexto;
+        
+        this.registrarRespuesta(
+            this.estado.mazoActual,
+            this.estado.preguntaActual,
+            correcta
+        );
+
+        this.mostrarRetroalimentacion(correcta, pregunta.lectura);
+        
+        return correcta;
+    },
+
+    siguientePregunta: function() {
+        const mazo = this.obtenerMazoActual();
+        if (!mazo) return;
+
+        this.estado.preguntaActual++;
+        
+        if (this.estado.preguntaActual >= mazo.palabras.length) {
+            this.finalizarQuiz();
+        } else {
+            this.mostrarPregunta();
+        }
+    },
+
+    finalizarQuiz: function() {
+        this.detenerTemporizador();
+        
+        // Mostrar resumen del quiz
+        const total = this.obtenerMazoActual().palabras.length;
+        const porcentaje = Math.round((this.estado.respuestasCorrectas / total) * 100);
+        
+        this.mostrarNotificacion(
+            `¡Quiz completado! ${this.estado.respuestasCorrectas}/${total} correctas (${porcentaje}%)`
+        );
+        
+        // Volver a la pantalla de mazos después de 3 segundos
+        setTimeout(() => {
+            UI.mostrarPantallaMazos();
+        }, 3000);
+    },
+
+    // Temporizador
+    iniciarTemporizador: function() {
+        this.detenerTemporizador();
+        this.estado.tiempoInicio = Date.now() - (this.estado.tiempoTranscurrido * 1000);
+        
+        this.estado.intervalo = setInterval(() => {
+            this.estado.tiempoTranscurrido = Math.floor((Date.now() - this.estado.tiempoInicio) / 1000);
+            this.actualizarTiempoUI();
+        }, 1000);
+    },
+
+    detenerTemporizador: function() {
+        if (this.estado.intervalo) {
+            clearInterval(this.estado.intervalo);
+            this.estado.intervalo = null;
+        }
+    },
+
+    inicializarTemporizador: function() {
+        // Solo para mantener el tiempo actualizado
+        setInterval(() => {
+            if (this.estado.intervalo) {
+                this.actualizarTiempoUI();
+            }
+        }, 1000);
+    },
+
+    actualizarTiempoUI: function() {
+        const tiempoElemento = document.getElementById('tiempo');
+        if (tiempoElemento) {
+            tiempoElemento.textContent = `${this.estado.tiempoTranscurrido}s`;
+        }
+    },
+
+    // UI helpers
+    mostrarPregunta: function() {
+        const pregunta = this.obtenerPreguntaActual();
+        if (!pregunta) return;
+
+        const palabraElemento = document.getElementById('palabra-central');
+        const opcionesElementos = document.querySelectorAll('.opcion');
+        const preguntaActualElemento = document.getElementById('pregunta-actual');
+        const totalPreguntasElemento = document.getElementById('total-preguntas');
+        const mazo = this.obtenerMazoActual();
+
+        // Actualizar palabra central
+        palabraElemento.textContent = pregunta.japones;
+        
+        // Limpiar romaji
+        document.getElementById('romaji-display').textContent = '';
+        
+        // Limpiar feedback
+        const feedbackElemento = document.getElementById('quiz-feedback');
+        feedbackElemento.textContent = '';
+        feedbackElemento.className = 'quiz-feedback';
+        
+        // Limpiar opciones
+        opcionesElementos.forEach(opcion => {
+            opcion.className = 'opcion';
+            opcion.textContent = '';
+            opcion.classList.remove('seleccionada', 'correcta', 'incorrecta');
+        });
+        
+        // Actualizar contadores
+        preguntaActualElemento.textContent = this.estado.preguntaActual + 1;
+        totalPreguntasElemento.textContent = mazo.palabras.length;
+        
+        // Deshabilitar botón siguiente
+        document.getElementById('btn-siguiente').disabled = true;
+        
+        // CORRECCIÓN: Usar las opciones como están definidas
+        // Las opciones ya están organizadas con la respuesta correcta en la posición indicada por pregunta.respuesta
+        const opcionesOrdenadas = pregunta.opciones;
+        
+        // Mostrar las opciones en orden
+        opcionesElementos.forEach((opcion, index) => {
+            if (opcionesOrdenadas[index]) {
+                opcion.textContent = opcionesOrdenadas[index];
+                // El data-index ya está configurado en el HTML
+            }
+        });
+    },
+
+    mostrarRetroalimentacion: function(correcta, romaji) {
+        const feedbackElemento = document.getElementById('quiz-feedback');
+        const romajiElemento = document.getElementById('romaji-display');
+        
+        // Mostrar romaji
+        romajiElemento.textContent = romaji;
+        
+        // Mostrar mensaje de feedback
+        if (correcta) {
+            feedbackElemento.textContent = '¡Correcto!';
+            feedbackElemento.className = 'quiz-feedback correcto';
+        } else {
+            feedbackElemento.textContent = 'Incorrecto';
+            feedbackElemento.className = 'quiz-feedback incorrecto';
+        }
+    },
+
+    mostrarNotificacion: function(mensaje) {
+        const notificacion = document.getElementById('notificacion');
+        const notificacionTexto = document.getElementById('notificacion-texto');
+        
+        notificacionTexto.textContent = mensaje;
+        notificacion.style.display = 'block';
+        
+        setTimeout(() => {
+            notificacion.style.display = 'none';
+        }, 3000);
+    },
+
+    actualizarUI: function() {
+        this.actualizarSaldoUI();
+    },
+
+    // Navegación
+    seleccionarManga: function(mangaId) {
+        this.estado.mangaActual = mangaId;
+        this.guardarEstado();
+    },
+
+    // Limpiar estado
+    resetearQuiz: function() {
+        this.estado.mazoActual = null;
+        this.estado.preguntaActual = 0;
+        this.estado.respuestasCorrectas = 0;
+        this.estado.respuestasIncorrectas = 0;
+        this.detenerTemporizador();
+        this.estado.tiempoTranscurrido = 0;
     }
 };
-
-// ============================================================================
-// FUNCIONES GLOBALES
-// ============================================================================
-
-function practicarPalabrasFalladas() {
-    if (typeof sistemaPalabrasFalladas !== 'undefined') {
-        sistemaPalabrasFalladas.practicarPalabrasFalladas();
-    }
-}
-
-function limpiarPalabrasFalladas() {
-    if (typeof sistemaPalabrasFalladas !== 'undefined') {
-        sistemaPalabrasFalladas.limpiarPalabrasFalladas();
-    }
-}
-
-// ============================================================================
-// INICIALIZAR SISTEMAS
-// ============================================================================
-
-document.addEventListener('DOMContentLoaded', function() {
-    if (typeof sistemaEconomia !== 'undefined') {
-        sistemaEconomia.inicializar();
-    }
-    
-    if (typeof sistemaPalabrasFalladas !== 'undefined') {
-        sistemaPalabrasFalladas.inicializar();
-    }
-});
-
-// Exportar para uso global
-if (typeof window !== 'undefined') {
-    window.sistemaEconomia = sistemaEconomia;
-    window.sistemaPalabrasFalladas = sistemaPalabrasFalladas;
-}
