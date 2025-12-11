@@ -1,1 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Aprendizaje de Japonés + RPG</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Pantalla de inicio -->
+        <div id="pantalla-inicio" class="pantalla activa">
+            <div class="logo-container">
+                <h1><i class="fas fa-language"></i> Japonés RPG</h1>
+                <p>Aprende japonés y desbloquea contenido especial</p>
+            </div>
+            
+            <div class="modo-seleccion">
+                <button id="btn-modulo-vocabulario" class="btn-modulo">
+                    <i class="fas fa-book"></i>
+                    <span>Módulo de Vocabulario</span>
+                </button>
+                <button id="btn-rpg-novias" class="btn-modulo">
+                    <i class="fas fa-heart"></i>
+                    <span>RPG de las Quintillizas</span>
+                </button>
+            </div>
+            
+            <div class="estado-global">
+                <div class="dinero-container">
+                    <i class="fas fa-coins"></i>
+                    <span id="dinero-total">100</span> Soles
+                </div>
+                <div class="chica-activa">
+                    <img id="chica-activa-img" src="" alt="Chica activa">
+                    <span id="chica-activa-nombre">Ninguna</span>
+                </div>
+            </div>
+        </div>
 
+        <!-- Pantalla de mangas/mazos -->
+        <div id="pantalla-mangas" class="pantalla">
+            <div class="header-mangas">
+                <button id="btn-volver-inicio" class="btn-volver">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </button>
+                <h2><i class="fas fa-book-open"></i> Sistema de Mangas</h2>
+                <div class="controles-mangas">
+                    <div class="dinero-display">
+                        <i class="fas fa-coins"></i> <span id="dinero-mangas">100</span> Soles
+                    </div>
+                    <button id="btn-limpiar-dificiles" class="btn-secundario">
+                        <i class="fas fa-trash"></i> Limpiar Dificiles
+                    </button>
+                </div>
+            </div>
+
+            <div id="contenedor-mangas" class="contenedor-mangas">
+                <!-- Mangas se generan dinámicamente -->
+            </div>
+
+            <div id="contenedor-mazos" class="contenedor-mazos oculto">
+                <!-- Mazos se generan dinámicamente -->
+            </div>
+
+            <div id="quiz-container" class="quiz-container oculto">
+                <!-- Quiz se genera dinámicamente -->
+            </div>
+        </div>
+
+        <!-- Pantalla RPG Novias -->
+        <div id="pantalla-rpg" class="pantalla">
+            <div class="header-rpg">
+                <button id="btn-volver-inicio-rpg" class="btn-volver">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </button>
+                <h2><i class="fas fa-heart"></i> RPG de las Quintillizas</h2>
+                <div class="dinero-rpg">
+                    <i class="fas fa-coins"></i> <span id="dinero-rpg">100</span> Soles
+                </div>
+            </div>
+
+            <div class="rpg-container">
+                <div class="seleccion-chicas">
+                    <!-- Chicas se generan dinámicamente -->
+                </div>
+
+                <div class="perfil-chica">
+                    <!-- Perfil se genera dinámicamente -->
+                </div>
+
+                <div class="contenido-chica">
+                    <!-- Contenido se genera dinámicamente -->
+                </div>
+
+                <div class="actividades-chica">
+                    <!-- Actividades se generan dinámicamente -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de eventos -->
+        <div id="modal-evento" class="modal oculto">
+            <div class="modal-contenido">
+                <h3><i class="fas fa-gift"></i> ¡Evento Especial Desbloqueado!</h3>
+                <div id="video-evento-container"></div>
+                <button id="btn-cerrar-evento" class="btn-primario">Continuar</button>
+            </div>
+        </div>
+
+        <!-- Modal de resultado -->
+        <div id="modal-resultado" class="modal oculto">
+            <div class="modal-contenido">
+                <h3 id="titulo-resultado"></h3>
+                <p id="mensaje-resultado"></p>
+                <div id="recompensa-resultado"></div>
+                <button id="btn-cerrar-resultado" class="btn-primario">Continuar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio para efectos -->
+    <audio id="audio-correcto" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3" preload="auto"></audio>
+    <audio id="audio-incorrecto" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3" preload="auto"></audio>
+    <audio id="audio-dinero" src="https://assets.mixkit.co/sfx/preview/mixkit-money-received-1996.mp3" preload="auto"></audio>
+
+    <script src="vocabulario.js"></script>
+    <script src="contenido.js"></script>
+    <script src="sistemas.js"></script>
+    <script src="rpg-novias.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
