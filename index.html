@@ -3,104 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz de Vocabulario Japonés</title>
+    <title>Entrenamiento Especial</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
-    <!-- Header con título y saldo -->
-    <header class="header">
-        <div class="header-content">
-            <h1 class="titulo-principal">
-                <i class="fas fa-language"></i> Quiz Japonés
-            </h1>
-            <div class="saldo-container">
-                <i class="fas fa-coins"></i>
-                <span id="saldo-soles">0</span> Soles
-            </div>
-        </div>
-    </header>
 
-    <!-- Entrenamiento Especial -->
-    <div class="entrenamiento-especial">
-        <div class="entrenamiento-header">
-            <i class="fas fa-graduation-cap"></i>
-            <h2>📝 ENTRENAMIENTO ESPECIAL</h2>
-        </div>
-        
-        <div class="entrenamiento-container">
-            <!-- Panel de Manga -->
-            <div class="manga-panel">
-                <h3><i class="fas fa-book"></i> MANGAS</h3>
-                <div id="lista-mangas" class="lista-mangas">
-                    <!-- Los mangas se cargan dinámicamente -->
+    <section class="especial-section">
+        <h2>📄 ENTRENAMIENTO ESPECIAL</h2>
+
+        <div class="card-container">
+
+            <!-- CARD 1 -->
+            <div class="card card-blue">
+                <div class="card-icon red">✖</div>
+                <h3>🔥 PALABRAS FALLADAS</h3>
+                <p>Revisa y practica tus errores</p>
+            </div>
+
+            <!-- CARD 2 -->
+            <div class="card card-purple">
+                <div class="card-img-circle">
+                    <img src="assets/nakano.png" alt="Nakano">
                 </div>
-            </div>
-            
-            <!-- Panel de Mazos -->
-            <div class="mazos-panel">
-                <h3><i class="fas fa-layer-group"></i> MAZOS DISPONIBLES</h3>
-                <div id="lista-mazos" class="lista-mazos">
-                    <!-- Los mazos se cargan dinámicamente cuando se selecciona un manga -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Pantalla del Quiz -->
-    <section id="pantalla-quiz" class="pantalla">
-        <div class="quiz-header">
-            <button id="btn-volver-mazos" class="btn-volver btn-volver-quiz">
-                <i class="fas fa-arrow-left"></i> Volver a Mazos
-            </button>
-            <div class="quiz-progreso">
-                <span id="pregunta-actual">1</span> / <span id="total-preguntas">10</span>
-            </div>
-            <div class="quiz-timer">
-                <i class="fas fa-clock"></i> <span id="tiempo">0s</span>
-            </div>
-        </div>
-
-        <div class="quiz-container">
-            <div class="palabra-central" id="palabra-central">
-                Cargando...
-            </div>
-            
-            <div class="romaji-display" id="romaji-display">
-                <!-- Aquí aparecerá el romaji después de responder -->
+                <h3>💖 Quintillizas Nakano RPG</h3>
+                <p>5 hermanas + sistema único + decoración</p>
             </div>
 
-            <div class="opciones-grid">
-                <div class="opcion" data-index="0"></div>
-                <div class="opcion" data-index="1"></div>
-                <div class="opcion" data-index="2"></div>
-                <div class="opcion" data-index="3"></div>
-            </div>
-
-            <div class="quiz-feedback" id="quiz-feedback">
-                <!-- Mensaje de correcto/incorrecto -->
-            </div>
-
-            <div class="quiz-controls">
-                <button id="btn-siguiente" class="btn-siguiente" disabled>
-                    Siguiente <i class="fas fa-arrow-right"></i>
-                </button>
-            </div>
         </div>
     </section>
 
-    <!-- Notificación de recompensa -->
-    <div id="notificacion" class="notificacion">
-        <div class="notificacion-content">
-            <i class="fas fa-gift"></i>
-            <span id="notificacion-texto"></span>
-        </div>
-    </div>
-
-    <!-- Scripts -->
-    <script src="vocabulario.js"></script>
-    <script src="sistema.js"></script>
-    <script src="main.js"></script>
 </body>
 </html>
